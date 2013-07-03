@@ -53,6 +53,29 @@ object defaultCodecs {
       data.isDefinedAt(0) && data(0) == 1
   }
 
+  implicit object CharBinaryCodec extends CacheCodec[Char, Array[Byte]] {
+    def serialize(value: Char): Array[Byte] = Array(
+      (value >>> 8).asInstanceOf[Byte],
+      value.asInstanceOf[Byte]
+    )
+
+    def deserialize(data: Array[Byte]): Char =
+      ((data(0).asInstanceOf[Int] & 255) << 8 |
+       data(1).asInstanceOf[Int] & 255)
+      .asInstanceOf[Char]
+  }
+
+  implicit object ShortBinaryCodec extends CacheCodec[Short, Array[Byte]] {
+    def serialize(value: Short): Array[Byte] = Array(
+      (value >>> 8).asInstanceOf[Byte],
+      value.asInstanceOf[Byte]
+    )
+
+    def deserialize(data: Array[Byte]): Short =
+      ((data(0).asInstanceOf[Short] & 255) << 8 |
+        data(1).asInstanceOf[Short] & 255)
+        .asInstanceOf[Short]
+  }
 
   implicit object StringBinaryCodec extends CacheCodec[String, Array[Byte]] {
     def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
