@@ -77,7 +77,7 @@ trait Cache[SerializationFormat] {
    * The method retries until the compare-and-set operation succeeds, so
    * the callback should have no side-effects.
    *
-   * This function can be used for atomic incrementers and stuff like that.
+   * This function can be used for atomic increments and stuff like that.
    *
    * @return the new value
    */
@@ -94,7 +94,7 @@ trait Cache[SerializationFormat] {
    * The method retries until the compare-and-set operation succeeds, so
    * the callback should have no side-effects.
    *
-   * This function can be used for atomic incrementers and stuff like that.
+   * This function can be used for atomic increments and stuff like that.
    *
    * @return the old value
    */
