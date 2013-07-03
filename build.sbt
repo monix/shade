@@ -20,7 +20,9 @@ homepage in ThisBuild := Some(url("http://github.com/alexandru/shade"))
 resolvers ++= Seq(
   "BionicSpirit Releases" at "http://maven.bionicspirit.com/releases/",
   "BionicSpirit Snapshots" at "http://maven.bionicspirit.com/snapshots/",
-  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases"
+  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
+  "Spray Releases" at "http://repo.spray.io",
+  "Spy" at "http://files.couchbase.com/maven2/"
 )
 
 libraryDependencies ++= Seq(
