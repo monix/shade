@@ -16,7 +16,7 @@ import shade.{TransformOverflowException, UnhandledStatusException, TimeoutExcep
  *
  * See the parent trait (Cache) for API docs.
  */
-class MemcachedImpl private[shade] (config: Configuration, scheduler: Scheduler, ec: ExecutionContext) extends Memcached {
+class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionContext) extends Memcached {
   private[this] implicit val context = ec
 
   /**

@@ -44,7 +44,7 @@ resolvers ++= Seq(
 Specify the dependency for individual subprojects:
 
 ```scala
-dependencies += "com.bionicspirit" %% "shifter" % "1.0"
+dependencies += "com.bionicspirit" %% "shifter" % "1.1"
 ```
 
 ## Documentation

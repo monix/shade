@@ -10,7 +10,7 @@ import shade.{CacheException, InMemoryCache}
 /**
  * Simple and dumb implementation of an in-memory cache.
  */
-final class InMemoryCacheImpl private[shade] (maxElems: Int = 100) extends InMemoryCache {
+class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
   override def awaitGet[T](key: String)(implicit codec: Codec[T]): Option[T] =
     cacheRef.get.get(key).flatMap {
       case value if !isExpired(value) =>
