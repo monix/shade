@@ -1,5 +1,7 @@
 # Shade - a Reactive Memcached Client for Scala
 
+## Overview 
+
 Shade is a Memcached client based on the de-facto Java library
 [SpyMemcached](https://code.google.com/p/spymemcached/).
 
@@ -17,6 +19,8 @@ don't make so much sense in the context of Scala (TODO: add details).
 The client is production quality, being in usage at Epigrams, Inc. for
 serving thousands of requests per second per instance of real
 traffic. It doesn't leak, it doesn't break, it works well under pressure.
+
+[![Build Status](https://travis-ci.org/alexandru/shade.png?branch=master)](https://travis-ci.org/alexandru/shade)
 
 ## Usage From SBT
 
