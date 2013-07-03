@@ -1,4 +1,4 @@
-# Shade - an Asynchronous Memcached Client for Scala
+# Shade - a Reactive Memcached Client for Scala
 
 Shade is a Memcached client based on the de-facto Java library
 [SpyMemcached](https://code.google.com/p/spymemcached/).
