@@ -1,11 +1,11 @@
-# Shade - a Reactive Memcached Client for Scala
+# Shade - Memcached Client for Scala
 
 ## Overview 
 
 Shade is a Memcached client based on the de-facto Java library
 [SpyMemcached](https://code.google.com/p/spymemcached/).
 
-The interface exposed is very Scala-like, as you have a choice between
+The interface exposed is very Scala-ish, as you have a choice between
 making asynchronous calls, with results wrapped as Scala
 [Futures](http://docs.scala-lang.org/sips/pending/futures-promises.html),
 or blocking calls.
@@ -28,27 +28,20 @@ Add these resolvers:
 
 ```
 resolvers ++= Seq(
+  // where Shade lives
   "BionicSpirit Releases" at "http://maven.bionicspirit.com/releases/",
-  "BionicSpirit Snapshots at "http://maven.bionicspirit.com/snapshots/"
-)
-```
-
-You may need other resolvers, depending on what subprojects you want,
-but right now you can get away with these:
-
-```scala
-resolvers ++= Seq(
+  "BionicSpirit Snapshots at "http://maven.bionicspirit.com/snapshots/",
   // just in case you don't have it already
   "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
-  // for SpyMemcached (shifter-cache dependency)
+  // for SpyMemcached
   "Spy" at "http://files.couchbase.com/maven2/"
 )
 ```
 
-Specify the dependency for individual subprojects:
+Specify the dependency:
 
 ```scala
-dependencies += "com.bionicspirit" %% "shifter" % "1.1"
+dependencies += "com.bionicspirit" %% "shade" % "1.2.0"
 ```
 
 ## Documentation

@@ -2,9 +2,9 @@ package shade.inmemory
 
 import concurrent.duration.Duration
 import concurrent.Future
-import shade.concurrency.atomic.Ref
 import annotation.tailrec
 import shade.{CacheException, InMemoryCache}
+import scala.concurrent.atomic.Atomic
 
 
 /**
@@ -152,5 +152,5 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
   private[this] def isExpired(value: CacheValue, currentTS: Long = System.currentTimeMillis()) =
     value.expiresTS <= currentTS
 
-  private[this] val cacheRef = Ref(Map.empty[String, CacheValue])
+  private[this] val cacheRef = Atomic(Map.empty[String, CacheValue])
 }
