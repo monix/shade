@@ -20,6 +20,8 @@ The client is production quality, being in usage at Epigrams, Inc. for
 serving thousands of requests per second per instance of real
 traffic. It doesn't leak, it doesn't break, it works well under pressure.
 
+Supported for Scala versions: 2.9.2, 2.9.3 and 2.10.x, to be updated for 2.11 as soon as it's final.
+
 [![Build Status](https://travis-ci.org/alexandru/shade.png?branch=master)](https://travis-ci.org/alexandru/shade)
 
 ## Usage From SBT
