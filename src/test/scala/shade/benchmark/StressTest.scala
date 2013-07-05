@@ -1,19 +1,19 @@
 package shade.benchmark
 
-import shade.concurrency.atomic.Ref
 import akka.actor.{ActorLogging, Props, ActorSystem, Actor}
 import shade.tests.MemcachedTestHelpers
 import shade.memcached.FailureMode
 import shade.memcached.defaultCodecs._
 import scala.concurrent.duration._
 import scala.util.{Try, Random}
+import scala.concurrent.atomic.Atomic
 
 object StressTest extends App with MemcachedTestHelpers {
-  val counterSuccess = Ref(0L)
-  val latencySuccess = Ref(0L)
-  val counterFailure = Ref(0L)
-  val latencyFailure = Ref(0L)
-  val globalStartTs = Ref(0L)
+  val counterSuccess = Atomic(0L)
+  val latencySuccess = Atomic(0L)
+  val counterFailure = Atomic(0L)
+  val latencyFailure = Atomic(0L)
+  val globalStartTs = Atomic(0L)
 
   case class Value(nr: Int)
 

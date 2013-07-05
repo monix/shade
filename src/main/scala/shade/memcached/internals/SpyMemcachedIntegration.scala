@@ -12,9 +12,9 @@ import akka.actor.Scheduler
 import scala.util.control.NonFatal
 import net.spy.memcached.auth.AuthThreadMonitor
 import java.util.concurrent.{CountDownLatch, TimeUnit}
-import shade.concurrency.atomic.Ref
 import java.io.IOException
 import shade.UnhandledStatusException
+import scala.concurrent.atomic.Atomic
 
 
 /**
@@ -33,7 +33,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   protected final val mconn = cf.createConnection(addrs.asJava)
   protected final val authDescriptor = Option(cf.getAuthDescriptor)
   protected final val authMonitor: AuthThreadMonitor = new AuthThreadMonitor
-  protected final val shuttingDown = Ref(initialValue = false)
+  protected final val shuttingDown = Atomic(initialValue = false)
 
   locally {
     if (authDescriptor.isDefined)
