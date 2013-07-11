@@ -1,6 +1,6 @@
 package shade.tests
 
-import shade.memcached.{FailureMode, Protocol, Configuration}
+import shade.memcached.{FakeMemcached, FailureMode, Protocol, Configuration}
 import akka.actor.ActorSystem
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
@@ -16,7 +16,7 @@ trait MemcachedTestHelpers {
     operationTimeout = 15.seconds
   )
 
-  def createCacheObject(system: ActorSystem, prefix: String, maxRetries: Option[Int] = None, opTimeout: Option[FiniteDuration] = None, failureMode: Option[FailureMode.Value] = None): Memcached = {
+  def createCacheObject(system: ActorSystem, prefix: String, maxRetries: Option[Int] = None, opTimeout: Option[FiniteDuration] = None, failureMode: Option[FailureMode.Value] = None, isFake: Boolean = false): Memcached = {
     val config = defaultConfig.copy(
       keysPrefix = defaultConfig.keysPrefix.map(s => s + "-" + prefix),
       maxTransformCASRetries = maxRetries.getOrElse(1000000),
@@ -25,6 +25,16 @@ trait MemcachedTestHelpers {
     )
 
     Memcached(config, system.scheduler, global)
+  }
+
+  def withFakeMemcached[T](cb: Memcached => T): T = {
+    val cache = new FakeMemcached
+    try {
+      cb(cache)
+    }
+    finally {
+      cache.shutdown()
+    }
   }
 
   def withCache[T](prefix: String, maxRetries: Option[Int] = None, failureMode: Option[FailureMode.Value] = None)(cb: Memcached => T): T = {
