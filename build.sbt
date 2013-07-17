@@ -37,8 +37,8 @@ libraryDependencies ++= Seq(
 
 pomExtra in ThisBuild := (
   <scm>
-    <url>git@github.com:alexandru/shade.git</url>
-    <connection>scm:git:git@github.com:alexandru/shade.git</connection>
+    <url>git@github.com:bionicspirit/shade.git</url>
+    <connection>scm:git:git@github.com:bionicspirit/shade.git</connection>
   </scm>
   <developers>
     <developer>
