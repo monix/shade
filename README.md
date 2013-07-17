@@ -22,7 +22,7 @@ traffic. It doesn't leak, it doesn't break, it works well under pressure.
 
 Supported for Scala versions: 2.9.2, 2.9.3 and 2.10.x, to be updated for 2.11 as soon as it's final.
 
-[![Build Status](https://travis-ci.org/alexandru/shade.png?branch=master)](https://travis-ci.org/alexandru/shade)
+[![Build Status](https://travis-ci.org/bionicspirit/shade.png?branch=master)](https://travis-ci.org/bionicspirit/shade)
 
 ## Usage From SBT
 
