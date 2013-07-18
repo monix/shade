@@ -9,7 +9,6 @@ import java.io.{ObjectOutputStream, ByteArrayOutputStream}
 import shade.memcached.defaultCodecs._
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import shade.TransformOverflowException
 
 
 @RunWith(classOf[JUnitRunner])
@@ -90,33 +89,33 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
-  test("cas") {
+  test("compareAndSet") {
     withFakeMemcached { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // no can do
-      assert(Await.result(cache.asyncCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // set to value1
-      assert(Await.result(cache.asyncCAS("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
+      assert(Await.result(cache.compareAndSet("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // set to value2, from value1
-      assert(cache.awaitCAS("some-key", Some(Value("value1")), Value("value2"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value1")), Value("value2"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // set to value3, from value2
-      assert(cache.awaitCAS("some-key", Some(Value("value2")), Value("value3"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value2")), Value("value3"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value3")))
     }
   }
@@ -238,8 +237,8 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-3") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
-      val result = cache.asyncSet(impression.uuid, impression, 60.seconds) flatMap { _ =>
-        cache.asyncGet[Impression](impression.uuid)
+      val result = cache.set(impression.uuid, impression, 60.seconds) flatMap { _ =>
+        cache.get[Impression](impression.uuid)
       }
 
       assert(Await.result(result, Duration.Inf) === Some(impression))

@@ -8,7 +8,10 @@ import net.spy.memcached.auth.{PlainCallbackHandler, AuthDescriptor}
 import concurrent.duration._
 import java.util.concurrent.TimeUnit
 import akka.actor.Scheduler
-import shade.{TransformOverflowException, UnhandledStatusException, TimeoutException, Memcached}
+import shade._
+import shade.memcached.internals.SuccessfulResult
+import scala.Some
+import shade.memcached.internals.FailedResult
 
 
 /**
@@ -30,7 +33,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def asyncAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     if (value != null)
       instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
         case SuccessfulResult(givenKey, Some(_)) =>
@@ -48,7 +51,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def asyncSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] = {
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] = {
     if (value != null)
       instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
         case SuccessfulResult(givenKey, _) =>
@@ -65,7 +68,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def asyncDelete(key: String): Future[Boolean] =
+  def delete(key: String): Future[Boolean] =
     instance.realAsyncDelete(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, result) =>
         result
@@ -78,7 +81,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * @return Some(value) in case the key is available, or None otherwise (doesn't throw exception on key missing)
    */
-  def asyncGet[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
+  def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
     instance.realAsyncGet(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, option) =>
         option.map(codec.deserialize)
@@ -87,7 +90,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
     }
 
   def getOrElse[T](key: String, default: => T)(implicit codec: Codec[T]): Future[T] =
-    asyncGet[T](key) map {
+    get[T](key) map {
       case Some(value) => value
       case None => default
     }
@@ -99,10 +102,10 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    * @param exp can be Duration.Inf (infinite) for not setting an expiration
    * @return either true (in case the compare-and-set succeeded) or false otherwise
    */
-  def asyncCAS[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     expecting match {
       case None =>
-        asyncAdd[T](key, newValue, exp)
+        add[T](key, newValue, exp)
 
       case Some(expectingValue) =>
         instance.realAsyncGets(withPrefix(key), config.operationTimeout) flatMap {
@@ -131,6 +134,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    */
   private[this] def genericTransform[T, R](key: String, exp: Duration, cb: Option[T] => T)(f: (Option[T], T) => R)(implicit codec: Codec[T]): Future[R] = {
     val keyWithPrefix = withPrefix(key)
+    val timeoutAt = System.currentTimeMillis() + config.operationTimeout.toMillis
 
     /**
      * Inner function used for retrying compare-and-set operations
@@ -140,13 +144,15 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
      *                                    retries is reached
      */
     def loop(retry: Int): Future[R] = {
-      if (config.maxTransformCASRetries > 0 && retry >= config.maxTransformCASRetries)
-        throw new TransformOverflowException(key)
+      val remainingTime = timeoutAt - System.currentTimeMillis()
 
-      instance.realAsyncGets(keyWithPrefix, config.operationTimeout) flatMap {
+      if (remainingTime <= 0)
+        throw new TimeoutException(key)
+
+      instance.realAsyncGets(keyWithPrefix, remainingTime.millis) flatMap {
         case SuccessfulResult(_, None) =>
           val result = cb(None)
-          asyncAdd(key, result, exp) flatMap {
+          add(key, result, exp) flatMap {
             case true =>
               Future.successful(f(None, result))
             case false =>
@@ -156,7 +162,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
           val currentOpt = Some(codec.deserialize(current))
           val result = cb(currentOpt)
 
-          instance.realAsyncCAS(keyWithPrefix, casID, 0, codec.serialize(result), exp, config.operationTimeout) flatMap {
+          instance.realAsyncCAS(keyWithPrefix, casID, 0, codec.serialize(result), exp, remainingTime.millis) flatMap {
             case SuccessfulResult(_, true) =>
               Future.successful(f(currentOpt, result))
             case SuccessfulResult(_, false) =>
@@ -220,7 +226,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
     case FailedResult(k, TimedOutStatus) =>
       throw new TimeoutException(withoutPrefix(k))
     case FailedResult(k, CancelledStatus) =>
-      throw new TimeoutException(withoutPrefix(k))
+      throw new CancelledException(withoutPrefix(k))
     case FailedResult(k, unhandled) =>
       throw new UnhandledStatusException(
         "For key %s - %s".format(withoutPrefix(k), unhandled.getClass.getName))

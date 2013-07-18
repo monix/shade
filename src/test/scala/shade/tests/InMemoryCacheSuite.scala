@@ -89,34 +89,35 @@ class InMemoryCacheSuite extends FunSuite {
     }
   }
 
-  test("cas") {
-    withCache("cas") { cache =>
+  test("compareAndSet") {
+    withCache("compareAndSet") { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // set to value1
-      assert(cache.awaitCAS("some-key", None, Value("value1"), 5.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // set to value2, from value1
-      assert(cache.awaitCAS("some-key", Some(Value("value1")), Value("value2"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value1")), Value("value2"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // set to value3, from value2
-      assert(cache.awaitCAS("some-key", Some(Value("value2")), Value("value3"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value2")), Value("value3"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value3")))
+
     }
   }
 

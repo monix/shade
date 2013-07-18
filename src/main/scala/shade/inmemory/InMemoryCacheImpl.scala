@@ -19,7 +19,7 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
         None
     }
 
-  def asyncGet[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
+  def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
     Future.successful(awaitGet(key))
 
 
@@ -40,7 +40,7 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
         }
       }
 
-  def asyncAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     Future.successful(awaitAdd(key, value, exp))
 
   override def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
@@ -59,7 +59,7 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
       }
   }
 
-  def asyncSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] = {
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] = {
     awaitSet(key, value, exp)
     Future.successful(())
   }
@@ -72,11 +72,11 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
     oldMap.contains(key) && !isExpired(oldMap(key))
   }
 
-  def asyncDelete(key: String): Future[Boolean] = {
+  def delete(key: String): Future[Boolean] = {
     Future.successful(awaitDelete(key))
   }
 
-  private[this] def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Boolean = {
+  private[this] def cas[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Boolean = {
     val currentTS = System.currentTimeMillis()
     val expectingS = expecting.map(codec.serialize)
 
@@ -99,8 +99,8 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
     }
   }
 
-  def asyncCAS[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
-    Future.successful(compareAndSet(key, expecting, newValue, exp))
+  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+    Future.successful(cas(key, expecting, newValue, exp))
 
   def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] = {
     @tailrec
@@ -108,7 +108,7 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
       val current = cacheRef.get.get(key).collect { case v if !isExpired(v) => codec.deserialize(v.value) }
       val update = cb(current)
 
-      if (!compareAndSet(key, current, update, exp))
+      if (!cas(key, current, update, exp))
         loop
       else
         update
@@ -123,7 +123,7 @@ class InMemoryCacheImpl(maxElems: Int = 100) extends InMemoryCache {
       val current = cacheRef.get.get(key).collect { case v if !isExpired(v) => codec.deserialize(v.value) }
       val update = cb(current)
 
-      if (!compareAndSet(key, current, update, exp))
+      if (!cas(key, current, update, exp))
         loop
       else
         current

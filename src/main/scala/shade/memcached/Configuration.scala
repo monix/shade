@@ -43,15 +43,7 @@ case class Configuration(
    * When the limit is reached, the Future responses finish
    * with Failure(TimeoutException)
    */
-  operationTimeout: FiniteDuration = 1.second,
-
-  /**
-   * Maximum number of retries on a transform operation
-   * (since it uses compare-and-set, it can have big problems on highly contended keys)
-   *
-   * If this threshold is exceeded, then it throws a TransformOverflowException
-   */
-  maxTransformCASRetries: Int = 100
+  operationTimeout: FiniteDuration = 1.second
 )
 
 

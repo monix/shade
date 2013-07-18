@@ -2,7 +2,7 @@ name := "shade"
 
 organization in ThisBuild := "com.bionicspirit"
 
-version in ThisBuild := "1.2.1"
+version in ThisBuild := "1.3-SNAPSHOT"
 
 scalaVersion in ThisBuild := "2.10.2"
 
