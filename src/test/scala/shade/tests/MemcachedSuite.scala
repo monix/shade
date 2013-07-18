@@ -10,7 +10,7 @@ import shade.memcached.defaultCodecs._
 import shade.memcached.FailureMode
 import scala.concurrent.duration._
 import scala.concurrent.Await
-import shade.TransformOverflowException
+import shade.TimeoutException
 
 
 @RunWith(classOf[JUnitRunner])
@@ -91,33 +91,33 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
-  test("cas") {
-    withCache("cas") { cache =>
+  test("compareAndSet") {
+    withCache("compareAndSet") { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // no can do
-      assert(Await.result(cache.asyncCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // set to value1
-      assert(Await.result(cache.asyncCAS("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
+      assert(Await.result(cache.compareAndSet("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // set to value2, from value1
-      assert(cache.awaitCAS("some-key", Some(Value("value1")), Value("value2"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value1")), Value("value2"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // no can do
-      assert(cache.awaitCAS("some-key", Some(Value("invalid")), Value("value1"), 15.seconds) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // set to value3, from value2
-      assert(cache.awaitCAS("some-key", Some(Value("value2")), Value("value3"), 15.seconds) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value2")), Value("value3"), 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value3")))
     }
   }
@@ -166,7 +166,7 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
   }
 
   test("transformAndGet-concurrent") {
-    withCache("transformAndGet") { cache =>
+    withCache("transformAndGet", opTimeout = Some(10.seconds)) { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
@@ -176,15 +176,15 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
           case Some(nr) => nr + 1
         }
 
-      val seq = concurrent.Future.sequence((0 until 500).map(nr => incrementValue))
+      val seq = concurrent.Future.sequence((0 until 1000).map(nr => incrementValue))
       Await.result(seq, 20.seconds)
 
-      assert(cache.awaitGet[Int]("some-key") === Some(500))
+      assert(cache.awaitGet[Int]("some-key") === Some(1000))
     }
   }
 
   test("getAndTransform-concurrent") {
-    withCache("getAndTransform") { cache =>
+    withCache("getAndTransform", opTimeout = Some(10.seconds)) { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
@@ -194,15 +194,15 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
           case Some(nr) => nr + 1
         }
 
-      val seq = concurrent.Future.sequence((0 until 500).map(nr => incrementValue))
+      val seq = concurrent.Future.sequence((0 until 1000).map(nr => incrementValue))
       Await.result(seq, 20.seconds)
 
-      assert(cache.awaitGet[Int]("some-key") === Some(500))
+      assert(cache.awaitGet[Int]("some-key") === Some(1000))
     }
   }
 
-  test("transformAndGet-concurrent-overflow") {
-    withCache("transformAndGet", maxRetries = Some(100)) { cache =>
+  test("transformAndGet-concurrent-timeout") {
+    withCache("transformAndGet", opTimeout = Some(300.millis)) { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
@@ -218,17 +218,17 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       val seq = concurrent.Future.sequence((0 until 500).map(nr => incrementValue))
       try {
         Await.result(seq, 20.seconds)
-        assert(condition = false, "should throw exception")
+        fail("should throw exception")
       }
       catch {
-        case ex: TransformOverflowException =>
+        case ex: TimeoutException =>
           assert(ex.getMessage === "some-key")
       }
     }
   }
 
-  test("getAndTransform-concurrent-overflow") {
-    withCache("getAndTransform", maxRetries = Some(100)) { cache =>
+  test("getAndTransform-concurrent-timeout") {
+    withCache("getAndTransform", opTimeout = Some(300.millis)) { cache =>
       cache.awaitDelete("some-key")
       assert(cache.awaitGet[Value]("some-key") === None)
 
@@ -245,11 +245,11 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
 
       try {
         Await.result(seq, 20.seconds)
-        assert(condition = false, "should throw exception")
+        fail("should throw exception")
       }
       catch {
-        case ex: TransformOverflowException =>
-          assert(ex.getMessage === "some-key")
+        case ex: TimeoutException =>
+          assert(ex.key === "some-key")
       }
     }
   }
@@ -292,8 +292,8 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-3") {
     withCache("big-instance-3") { cache =>
       val impression = shade.testModels.bigInstance
-      val result = cache.asyncSet(impression.uuid, impression, 60.seconds) flatMap { _ =>
-        cache.asyncGet[Impression](impression.uuid)
+      val result = cache.set(impression.uuid, impression, 60.seconds) flatMap { _ =>
+        cache.get[Impression](impression.uuid)
       }
 
       assert(Await.result(result, Duration.Inf) === Some(impression))

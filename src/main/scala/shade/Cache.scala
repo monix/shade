@@ -19,20 +19,20 @@ trait Cache[SerializationFormat] {
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def asyncAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
 
   def awaitAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Boolean =
-    Await.result(asyncAdd(key, value, exp), Duration.Inf)
+    Await.result(add(key, value, exp), Duration.Inf)
 
   /**
    * Sets a (key, value) in the cache store.
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def asyncSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit]
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit]
 
   def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
-    Await.result(asyncSet(key, value, exp), Duration.Inf)
+    Await.result(set(key, value, exp), Duration.Inf)
   }
 
   /**
@@ -40,20 +40,20 @@ trait Cache[SerializationFormat] {
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def asyncDelete(key: String): Future[Boolean]
+  def delete(key: String): Future[Boolean]
 
   def awaitDelete(key: String) =
-    Await.result(asyncDelete(key), Duration.Inf)
+    Await.result(delete(key), Duration.Inf)
 
   /**
    * Fetches a value from the cache store.
    *
    * @return Some(value) in case the key is available, or None otherwise (doesn't throw exception on key missing)
    */
-  def asyncGet[T](key: String)(implicit codec: Codec[T]): Future[Option[T]]
+  def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]]
 
   def awaitGet[T](key: String)(implicit codec: Codec[T]): Option[T] =
-    Await.result(asyncGet[T](key), Duration.Inf)
+    Await.result(get[T](key), Duration.Inf)
 
   /**
    * Compare and set.
@@ -62,10 +62,7 @@ trait Cache[SerializationFormat] {
    * @param exp can be Duration.Inf (infinite) for not setting an expiration
    * @return either true (in case the compare-and-set succeeded) or false otherwise
    */
-  def asyncCAS[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
-
-  def awaitCAS[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Boolean =
-    Await.result(asyncCAS(key, expecting, newValue, exp), Duration.Inf)
+  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
 
   /**
    * Transforms the given key and returns the new value.

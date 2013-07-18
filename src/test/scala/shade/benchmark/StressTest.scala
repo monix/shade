@@ -57,7 +57,7 @@ object StressTest extends App with MemcachedTestHelpers {
           val key = "test" + idx.toString
 
           val startTS = System.currentTimeMillis()
-          val future = memcached.asyncGet[Value](key)
+          val future = memcached.get[Value](key)
 
           future.onSuccess {
             case _ =>
