@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext.Implicits.global
-import shade.testModels.Impression
+import shade.testModels.{ContentPiece, Impression}
 import java.io.{ObjectOutputStream, ByteArrayOutputStream}
 import shade.memcached.defaultCodecs._
 import shade.memcached.FailureMode
@@ -254,6 +254,14 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("vector-inherited-case-classes") {
+    withCache("vector-inherited-case-classes") { cache =>
+      val content = shade.testModels.contentSeq
+      cache.awaitSet("blog-posts", content, 60.seconds)
+      assert(cache.awaitGet[Vector[ContentPiece]]("blog-posts") === Some(content))
+    }
+  }
+
   test("big-instance-1") {
     withCache("big-instance-1") { cache =>
       val impression = shade.testModels.bigInstance
@@ -261,7 +269,6 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       assert(cache.awaitGet[Impression](impression.uuid) === Some(impression))
     }
   }
-
 
   test("big-instance-1-manual") {
     withCache("big-instance-1-manual") { cache =>
