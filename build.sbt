@@ -2,9 +2,9 @@ name := "shade"
 
 organization in ThisBuild := "com.bionicspirit"
 
-version in ThisBuild := "1.3.1"
+version in ThisBuild := "1.3.2"
 
-scalaVersion in ThisBuild := "2.10.2"
+scalaVersion in ThisBuild := "2.10.3"
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 

@@ -99,4 +99,35 @@ package object testModels {
     112,
     true,
     Some("light-fullscreen"))
+
+  val contentSeq = Vector(
+    ContentPiece.Article(
+      id = Some(1),
+      url = "http://google.com/",
+      creator = "alex",
+      title = "Hello world!",
+      shortExcerpt = "Hello world",
+      excerptHtml = "<b>Hello world</b>",
+      contentHtml = Some("<h1>Sample</h1><b>Hello world</b>"),
+      source = ContentSource.WordPress,
+      tags = Vector("auto", "hello")
+    ),
+    ContentPiece.Image(
+      id = Some(2),
+      url = "http://google.com/",
+      creator = "alex",
+      photo = "http://google.com/image.png",
+      title = Some("Image"),
+      source = ContentSource.Tumblr,
+      tags = Vector("google", "image")
+    ),
+    ContentPiece.Title(
+      id = Some(3),
+      url = "http://google.com/3",
+      title = "Hello Title",
+      creator = "alex",
+      source = ContentSource.Tumblr,
+      tags = Vector("title", "hello")
+    )
+  )
 }
