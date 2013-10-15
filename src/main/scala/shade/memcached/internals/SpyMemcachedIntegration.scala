@@ -323,7 +323,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]) {
         assert(key == receivedKey, "Wrong key returned")
         assert(cas > 0, "CAS was less than zero:  " + cas)
-        assert(!promise.isCompleted, "promise is already complete")
 
         result.tryComplete(Try {
           SuccessfulResult(key, Option(data).map(d => (d, cas)))
