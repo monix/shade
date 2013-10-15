@@ -3,6 +3,7 @@ package shade.memcached
 import java.io._
 import scala.util.control.NonFatal
 import shade.CacheCodec
+import scala.reflect.ClassTag
 
 object defaultCodecs {
   implicit object IntBinaryCodec extends CacheCodec[Int, Array[Byte]] {
@@ -82,8 +83,8 @@ object defaultCodecs {
     def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
   }
 
-  private[this] object genericCodec extends CacheCodec[Serializable, Array[Byte]] {
-    val classLoader = Thread.currentThread().getContextClassLoader
+  private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends CacheCodec[S, Array[Byte]] {
+    def classLoader = classTag.runtimeClass.getClassLoader
 
     def using[T <: Closeable, R](obj: T)(f: T => R): R =
       try
@@ -93,7 +94,7 @@ object defaultCodecs {
           case NonFatal(_) => // does nothing
         }
 
-    def serialize(value: Serializable): Array[Byte] =
+    def serialize(value: S): Array[Byte] =
       using (new ByteArrayOutputStream()) { buf =>
         using (new ObjectOutputStream(buf)) { out =>
           out.writeObject(value)
@@ -102,7 +103,7 @@ object defaultCodecs {
         }
       }
 
-    def deserialize(data: Array[Byte]): Serializable =
+    def deserialize(data: Array[Byte]): S =
       using (new ByteArrayInputStream(data)) { buf =>
         val in = new ObjectInputStream(buf) {
           override def resolveClass(desc: ObjectStreamClass): Class[_] = {
@@ -117,11 +118,11 @@ object defaultCodecs {
         }
 
         using (in) { inp =>
-          inp.readObject().asInstanceOf[Serializable]
+          inp.readObject().asInstanceOf[S]
         }
       }
   }
 
-  implicit def AnyRefBinaryCodec[S <: Serializable]: CacheCodec[S, Array[Byte]] =
-    genericCodec.asInstanceOf[CacheCodec[S, Array[Byte]]]
+  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): CacheCodec[S, Array[Byte]] =
+    new GenericCodec[S](ev)
 }
