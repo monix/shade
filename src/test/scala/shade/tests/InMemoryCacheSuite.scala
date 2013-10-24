@@ -5,9 +5,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import shade.inmemory.defaultCodecs._
 import scala.concurrent.Await
-import shade.InMemoryCache
+import shade.inmemory.InMemoryCache
 
 
 @RunWith(classOf[JUnitRunner])
@@ -16,7 +15,7 @@ class InMemoryCacheSuite extends FunSuite {
 
   test("add") {
     withCache("add") { cache =>
-      val op1 = cache.awaitAdd("hello", Value("world"), 5.seconds)(InMemoryAnyCodec)
+      val op1 = cache.awaitAdd("hello", Value("world"), 5.seconds)
       assert(op1 === true)
 
       val stored = cache.awaitGet[Value]("hello")

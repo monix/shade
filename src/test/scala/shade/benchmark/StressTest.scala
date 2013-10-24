@@ -3,7 +3,6 @@ package shade.benchmark
 import akka.actor.{ActorLogging, Props, ActorSystem, Actor}
 import shade.tests.MemcachedTestHelpers
 import shade.memcached.FailureMode
-import shade.memcached.defaultCodecs._
 import scala.concurrent.duration._
 import scala.util.{Try, Random}
 import scala.concurrent.atomic.Atomic

@@ -1,12 +1,13 @@
 package shade.tests
 
-import shade.memcached.{FakeMemcached, FailureMode, Protocol, Configuration}
+import shade.memcached._
 import akka.actor.ActorSystem
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import shade.Memcached
+import shade.memcached.Configuration
+import scala.Some
 
-trait MemcachedTestHelpers {
+trait MemcachedTestHelpers extends MemcachedCodecs {
   val defaultConfig = Configuration(
     addresses = "127.0.0.1:11211",
     authentication = None,

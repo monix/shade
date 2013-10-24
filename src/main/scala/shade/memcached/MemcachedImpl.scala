@@ -8,10 +8,9 @@ import net.spy.memcached.auth.{PlainCallbackHandler, AuthDescriptor}
 import concurrent.duration._
 import java.util.concurrent.TimeUnit
 import akka.actor.Scheduler
-import shade._
 import shade.memcached.internals.SuccessfulResult
-import scala.Some
 import shade.memcached.internals.FailedResult
+import shade.{UnhandledStatusException, CancelledException, TimeoutException}
 
 
 /**
@@ -34,34 +33,37 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    * @return either true, in case the value was set, or false otherwise
    */
   def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
-    if (value != null)
-      instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
-        case SuccessfulResult(givenKey, Some(_)) =>
-          true
-        case SuccessfulResult(givenKey, None) =>
-          false
-        case failure: FailedResult =>
-          throwExceptionOn(failure)
-      }
-    else
-      Future.successful(false)
+    value match {
+      case null =>
+        Future.successful(false)
+      case _ =>
+        instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
+          case SuccessfulResult(givenKey, Some(_)) =>
+            true
+          case SuccessfulResult(givenKey, None) =>
+            false
+          case failure: FailedResult =>
+            throwExceptionOn(failure)
+        }
+    }
 
   /**
    * Sets a (key, value) in the cache store.
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] = {
-    if (value != null)
-      instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
-        case SuccessfulResult(givenKey, _) =>
-          ()
-        case failure: FailedResult =>
-          throwExceptionOn(failure)
-      }
-    else
-      Future.successful(())
-  }
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
+    value match {
+      case null =>
+        Future.successful(())
+      case _ =>
+        instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
+          case SuccessfulResult(givenKey, _) =>
+            ()
+          case failure: FailedResult =>
+            throwExceptionOn(failure)
+        }
+    }
 
   /**
    * Deletes a key from the cache store.
@@ -193,7 +195,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * @return the new value
    */
-  def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: MemcachedImpl#Codec[T]): Future[T] =
+  def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] =
     genericTransform(key, exp, cb) {
       case (oldValue, newValue) => newValue
     }
@@ -213,7 +215,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
    *
    * @return the old value
    */
-  def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: MemcachedImpl#Codec[T]): Future[Option[T]] =
+  def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[Option[T]] =
     genericTransform(key, exp, cb) {
       case (oldValue, newValue) => oldValue
     }

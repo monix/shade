@@ -1,12 +1,23 @@
 package shade.memcached
 
 import java.io._
-import scala.util.control.NonFatal
-import shade.CacheCodec
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
+import java.io.Serializable
 
-object defaultCodecs {
-  implicit object IntBinaryCodec extends CacheCodec[Int, Array[Byte]] {
+/**
+ * Represents a type class that needs to be implemented
+ * for serialization/deserialization to work.
+ */
+trait Codec[T] {
+  def serialize(value: T): Array[Byte]
+  def deserialize(data: Array[Byte]): T
+}
+
+object Codec extends BaseCodecs
+
+trait BaseCodecs {
+  implicit object IntBinaryCodec extends Codec[Int] {
     def serialize(value: Int): Array[Byte] =
       Array(
         (value >>> 24).asInstanceOf[Byte],
@@ -17,12 +28,12 @@ object defaultCodecs {
 
     def deserialize(data: Array[Byte]): Int =
       (data(0).asInstanceOf[Int] & 255) << 24 |
-      (data(1).asInstanceOf[Int] & 255) << 16 |
-      (data(2).asInstanceOf[Int] & 255) << 8 |
-      data(3).asInstanceOf[Int] & 255
+        (data(1).asInstanceOf[Int] & 255) << 16 |
+        (data(2).asInstanceOf[Int] & 255) << 8 |
+        data(3).asInstanceOf[Int] & 255
   }
 
-  implicit object LongBinaryCodec extends CacheCodec[Long, Array[Byte]] {
+  implicit object LongBinaryCodec extends Codec[Long] {
     def serialize(value: Long): Array[Byte] =
       Array(
         (value >>> 56).asInstanceOf[Byte],
@@ -37,16 +48,16 @@ object defaultCodecs {
 
     def deserialize(data: Array[Byte]): Long =
       (data(0).asInstanceOf[Long] & 255) << 56 |
-      (data(1).asInstanceOf[Long] & 255) << 48 |
-      (data(2).asInstanceOf[Long] & 255) << 40 |
-      (data(3).asInstanceOf[Long] & 255) << 32 |
-      (data(4).asInstanceOf[Long] & 255) << 24 |
-      (data(5).asInstanceOf[Long] & 255) << 16 |
-      (data(6).asInstanceOf[Long] & 255) << 8 |
-      data(7).asInstanceOf[Long] & 255
+        (data(1).asInstanceOf[Long] & 255) << 48 |
+        (data(2).asInstanceOf[Long] & 255) << 40 |
+        (data(3).asInstanceOf[Long] & 255) << 32 |
+        (data(4).asInstanceOf[Long] & 255) << 24 |
+        (data(5).asInstanceOf[Long] & 255) << 16 |
+        (data(6).asInstanceOf[Long] & 255) << 8 |
+        data(7).asInstanceOf[Long] & 255
   }
 
-  implicit object BooleanBinaryCodec extends CacheCodec[Boolean, Array[Byte]] {
+  implicit object BooleanBinaryCodec extends Codec[Boolean] {
     def serialize(value: Boolean): Array[Byte] =
       Array((if (value) 1 else 0).asInstanceOf[Byte])
 
@@ -54,7 +65,7 @@ object defaultCodecs {
       data.isDefinedAt(0) && data(0) == 1
   }
 
-  implicit object CharBinaryCodec extends CacheCodec[Char, Array[Byte]] {
+  implicit object CharBinaryCodec extends Codec[Char] {
     def serialize(value: Char): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
@@ -62,11 +73,11 @@ object defaultCodecs {
 
     def deserialize(data: Array[Byte]): Char =
       ((data(0).asInstanceOf[Int] & 255) << 8 |
-       data(1).asInstanceOf[Int] & 255)
-      .asInstanceOf[Char]
+        data(1).asInstanceOf[Int] & 255)
+        .asInstanceOf[Char]
   }
 
-  implicit object ShortBinaryCodec extends CacheCodec[Short, Array[Byte]] {
+  implicit object ShortBinaryCodec extends Codec[Short] {
     def serialize(value: Short): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
@@ -78,12 +89,14 @@ object defaultCodecs {
         .asInstanceOf[Short]
   }
 
-  implicit object StringBinaryCodec extends CacheCodec[String, Array[Byte]] {
+  implicit object StringBinaryCodec extends Codec[String] {
     def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
     def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
   }
+}
 
-  private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends CacheCodec[S, Array[Byte]] {
+trait MemcachedCodecs extends BaseCodecs {
+  private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
     def classLoader = classTag.runtimeClass.getClassLoader
 
     def using[T <: Closeable, R](obj: T)(f: T => R): R =
@@ -123,6 +136,9 @@ object defaultCodecs {
       }
   }
 
-  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): CacheCodec[S, Array[Byte]] =
+  implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S] =
     new GenericCodec[S](ev)
 }
+
+object MemcachedCodecs extends MemcachedCodecs
+
