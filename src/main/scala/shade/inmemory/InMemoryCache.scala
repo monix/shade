@@ -1,13 +1,9 @@
-package shade
+package shade.inmemory
 
-import concurrent._
-import duration._
-import shade.memcached.Configuration
-import akka.actor.Scheduler
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
-trait Cache[SerializationFormat] {
-  type Codec[T] = CacheCodec[T, SerializationFormat]
-
+trait InMemoryCache {
   /**
    * Adds a value for a given key, if the key doesn't already exist in the cache store.
    *
@@ -19,9 +15,9 @@ trait Cache[SerializationFormat] {
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
+  def add[T](key: String, value: T, exp: Duration): Future[Boolean]
 
-  def awaitAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Boolean =
+  def awaitAdd[T](key: String, value: T, exp: Duration): Boolean =
     Await.result(add(key, value, exp), Duration.Inf)
 
   /**
@@ -29,9 +25,9 @@ trait Cache[SerializationFormat] {
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit]
+  def set[T](key: String, value: T, exp: Duration): Future[Unit]
 
-  def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
+  def awaitSet[T](key: String, value: T, exp: Duration) {
     Await.result(set(key, value, exp), Duration.Inf)
   }
 
@@ -50,9 +46,9 @@ trait Cache[SerializationFormat] {
    *
    * @return Some(value) in case the key is available, or None otherwise (doesn't throw exception on key missing)
    */
-  def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]]
+  def get[T](key: String): Future[Option[T]]
 
-  def awaitGet[T](key: String)(implicit codec: Codec[T]): Option[T] =
+  def awaitGet[T](key: String): Option[T] =
     Await.result(get[T](key), Duration.Inf)
 
   /**
@@ -62,7 +58,7 @@ trait Cache[SerializationFormat] {
    * @param exp can be Duration.Inf (infinite) for not setting an expiration
    * @return either true (in case the compare-and-set succeeded) or false otherwise
    */
-  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
+  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration): Future[Boolean]
 
   /**
    * Transforms the given key and returns the new value.
@@ -78,7 +74,7 @@ trait Cache[SerializationFormat] {
    *
    * @return the new value
    */
-  def transformAndGet[T](key: String, exp: Duration)(cb: Option[T] => T)(implicit codec: Codec[T]): Future[T]
+  def transformAndGet[T](key: String, exp: Duration)(cb: Option[T] => T): Future[T]
 
   /**
    * Transforms the given key and returns the old value as an Option[T]
@@ -95,7 +91,7 @@ trait Cache[SerializationFormat] {
    *
    * @return the old value
    */
-  def getAndTransform[T](key: String, exp: Duration)(cb: Option[T] => T)(implicit codec: Codec[T]): Future[Option[T]]
+  def getAndTransform[T](key: String, exp: Duration)(cb: Option[T] => T): Future[Option[T]]
 
   /**
    * Shuts down the cache instance, performs any additional cleanups necessary.
@@ -103,15 +99,6 @@ trait Cache[SerializationFormat] {
   def shutdown()
 }
 
-trait InMemoryCache extends Cache[Any]
 object InMemoryCache {
-  def apply(maxElems: Int): InMemoryCache =
-    new inmemory.InMemoryCacheImpl(maxElems)
+  def apply(maxElems: Int): InMemoryCache = new InMemoryCacheImpl(maxElems)
 }
-
-trait Memcached extends Cache[Array[Byte]]
-object Memcached {
-  def apply(config: Configuration, scheduler: Scheduler, ec: ExecutionContext): Memcached =
-    new memcached.MemcachedImpl(config, scheduler, ec)
-}
-

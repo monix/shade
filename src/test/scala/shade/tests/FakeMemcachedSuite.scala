@@ -6,7 +6,6 @@ import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext.Implicits.global
 import shade.testModels.Impression
 import java.io.{ObjectOutputStream, ByteArrayOutputStream}
-import shade.memcached.defaultCodecs._
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
