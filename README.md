@@ -43,7 +43,7 @@ resolvers ++= Seq(
 Specify the dependency:
 
 ```scala
-dependencies += "com.bionicspirit" %% "shade" % "1.3.3"
+dependencies += "com.bionicspirit" %% "shade" % "1.4.0"
 ```
 
 ## Documentation
