@@ -28,12 +28,14 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
   }
 
   def withFakeMemcached[T](cb: Memcached => T): T = {
-    val cache = new FakeMemcached
+    val system = ActorSystem("default")
+    val cache = new FakeMemcached(system.scheduler)
     try {
       cb(cache)
     }
     finally {
-      cache.shutdown()
+      cache.close()
+      system.shutdown()
     }
   }
 
@@ -45,7 +47,7 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
       cb(cache)
     }
     finally {
-      cache.shutdown()
+      cache.close()
     }
   }
 }
