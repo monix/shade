@@ -4,7 +4,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Await, Future}
 import akka.actor.Scheduler
 
-trait Memcached {
+trait Memcached extends java.io.Closeable {
   /**
    * Adds a value for a given key, if the key doesn't already exist in the cache store.
    *
@@ -97,7 +97,7 @@ trait Memcached {
   /**
    * Shuts down the cache instance, performs any additional cleanups necessary.
    */
-  def shutdown()
+  def close()
 }
 
 object Memcached {

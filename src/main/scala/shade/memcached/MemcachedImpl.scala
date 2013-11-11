@@ -220,7 +220,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
       case (oldValue, newValue) => oldValue
     }
 
-  def shutdown() {
+  def close() {
     instance.shutdown(3, TimeUnit.SECONDS)
   }
 
