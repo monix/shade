@@ -29,6 +29,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "spy" % "spymemcached" % "2.8.4",
+  "org.scalaz" %% "scalaz-core" % "7.0.4",
   "com.bionicspirit" %% "scala-atomic" % "0.1",
   "org.slf4j" % "slf4j-api" % "1.7.4",
   "org.scala-lang" % "scala-compiler" % "2.10.3",
