@@ -29,7 +29,7 @@ as it's final and a port for 2.9.x is in progress.
 
 Add these resolvers:
 
-```
+```scala
 resolvers ++= Seq(
   // where Shade lives
   "BionicSpirit Releases" at "http://maven.bionicspirit.com/releases/",
@@ -201,7 +201,7 @@ or other weird errors. You can solve this by mixing-in
 `MemcachedCodecs` in whatever trait, class or object you want to do
 requests, as in:
 
-```
+```scala
 case class User(id: Int, name: String, age: Int)
 
 trait HelloController extends Controller with MemcachedCodecs {
