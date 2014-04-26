@@ -53,10 +53,10 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
     withCache("set") { cache =>
       assert(cache.awaitGet[Value]("hello") === None)
 
-      cache.awaitSet("hello", Value("world"), 3.seconds)
+      cache.awaitSet("hello", Value("world"), 1.seconds)
       assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
 
-      cache.awaitSet("hello", Value("changed"), 3.seconds)
+      cache.awaitSet("hello", Value("changed"), 1.second)
       assert(cache.awaitGet[Value]("hello") === Some(Value("changed")))
 
       Thread.sleep(3000)

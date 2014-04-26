@@ -2,7 +2,7 @@ name := "shade"
 
 organization := "com.bionicspirit"
 
-version := "1.6.0-SNAPSHOT"
+version := "1.6.0"
 
 scalaVersion := "2.10.4"
 
@@ -16,15 +16,8 @@ scalacOptions in ThisBuild ++= Seq(
   "-Ywarn-nullary-override", "-Ywarn-nullary-unit"
 )
 
-licenses in ThisBuild := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
-
-homepage in ThisBuild := Some(url("http://github.com/alexandru/shade"))
-
 resolvers ++= Seq(
-  "BionicSpirit Releases" at "http://maven.bionicspirit.com/releases/",
-  "BionicSpirit Snapshots" at "http://maven.bionicspirit.com/snapshots/",
   "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
-  "Spray Releases" at "http://repo.spray.io",
   "Spy" at "http://files.couchbase.com/maven2/"
 )
 
@@ -38,6 +31,8 @@ libraryDependencies ++= Seq(
 )
 
 publishMavenStyle := true
+
+publishArtifact in Test := false
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
@@ -55,8 +50,8 @@ pomExtra in ThisBuild :=
   <url>https://github.com/alexandru/shade</url>
   <licenses>
     <license>
-      <name>Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <name>The MIT License</name>
+      <url>http://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -68,6 +63,6 @@ pomExtra in ThisBuild :=
     <developer>
       <id>alex_ndc</id>
       <name>Alexandru Nedelcu</name>
-      <url>http://bionicspirit.com</url>
+      <url>https://www.bionicspirit.com/</url>
     </developer>
   </developers>

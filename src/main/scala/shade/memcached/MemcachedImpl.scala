@@ -138,7 +138,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
     val keyWithPrefix = withPrefix(key)
     val timeoutAt = System.currentTimeMillis() + config.operationTimeout.toMillis
 
-    /**
+    /*
      * Inner function used for retrying compare-and-set operations
      * with a maximum threshold of retries.
      *
