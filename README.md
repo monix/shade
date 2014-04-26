@@ -25,6 +25,10 @@ as it's final and a port for 2.9.x is in progress.
 
 [![Build Status](https://travis-ci.org/alexandru/shade.png?branch=master)](https://travis-ci.org/alexandru/shade)
 
+## Release Notes
+
+- [Version 1.6.0 - April 26, 2014](release-notes/1.6.0.md)
+
 ## Usage From SBT
 
 Add these resolvers:
