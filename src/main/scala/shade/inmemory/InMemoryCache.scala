@@ -183,7 +183,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
       val newValue = cb(currentValue)
       val values = current.values.updated(key, CacheValue(newValue, ts))
       val firstExpiry = if (current.firstExpiry == 0) ts else math.min(current.firstExpiry, ts)
-      (current.copy(values, firstExpiry), newValue)
+      (newValue, current.copy(values, firstExpiry))
     }
 
   def getAndTransform[T](key: String, expiry: Duration)(cb: (Option[T]) => T): Option[T] =
@@ -200,7 +200,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
       val newValue = cb(currentValue)
       val values = current.values.updated(key, CacheValue(newValue, ts))
       val firstExpiry = if (current.firstExpiry == 0) ts else math.min(current.firstExpiry, ts)
-      (current.copy(values, firstExpiry), currentValue)
+      (currentValue, current.copy(values, firstExpiry))
     }
 
   def clean() = {
@@ -219,11 +219,11 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
         }
 
         val newState = CacheState(values, firstExpiry)
-        (newState, (currentState.maintenancePromise, difference))
+        ((currentState.maintenancePromise, difference), newState)
       }
       else {
         val newState = currentState.copy(maintenancePromise = Promise())
-        (newState, (currentState.maintenancePromise, 0))
+        ((currentState.maintenancePromise, 0), newState)
       }
     }
 
