@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Slf4jLogger extends AbstractLogger {
-
     private Logger logger;
 
     public Slf4jLogger(String name) {
@@ -23,6 +22,11 @@ public class Slf4jLogger extends AbstractLogger {
     @Override
     public boolean isInfoEnabled() {
         return logger.isInfoEnabled();
+    }
+
+    @Override
+    public boolean isTraceEnabled() {
+        return logger.isTraceEnabled();
     }
 
     @Override public void log(Level level, Object message, Throwable e) {

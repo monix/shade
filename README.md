@@ -31,19 +31,30 @@ as it's final and a port for 2.9.x is in progress.
 
 ## Usage From SBT
 
-Add these resolvers:
+Add this resolver for SpyMemcached:
 
 ```scala
-resolvers ++= Seq(
-  // for SpyMemcached
-  "Spy" at "http://files.couchbase.com/maven2/"
-)
+resolvers += "Spy" at "http://files.couchbase.com/maven2/"
 ```
 
 Specify the dependency:
 
 ```scala
 dependencies += "com.bionicspirit" %% "shade" % "1.6.0"
+```
+
+### Using the snapshot (in-development) version
+
+Add this resolver for Sonatype snapshots:
+
+```scala
+resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+```
+
+Add the dependency:
+
+```scala
+dependencies += "com.bionicspirit" %% "shade" % "1.7.0-SNAPSHOT"
 ```
 
 ## Usage - Memcached

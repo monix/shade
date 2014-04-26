@@ -2,7 +2,7 @@ name := "shade"
 
 organization := "com.bionicspirit"
 
-version := "1.6.0"
+version := "1.7.0-SNAPSHOT"
 
 scalaVersion := "2.10.4"
 
@@ -22,7 +22,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "spy" % "spymemcached" % "2.8.4",
+  "net.spy" % "spymemcached" % "2.11.1",
   "org.monifu" %% "monifu-core" % "0.7.0",
   "org.slf4j" % "slf4j-api" % "1.7.7",
   "ch.qos.logback" % "logback-classic" % "1.0.6" % "test",
