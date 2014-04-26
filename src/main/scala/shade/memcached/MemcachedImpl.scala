@@ -7,10 +7,10 @@ import net.spy.memcached.ConnectionFactoryBuilder.{Protocol => SpyProtocol}
 import net.spy.memcached.auth.{PlainCallbackHandler, AuthDescriptor}
 import concurrent.duration._
 import java.util.concurrent.TimeUnit
-import akka.actor.Scheduler
 import shade.memcached.internals.SuccessfulResult
 import shade.memcached.internals.FailedResult
 import shade.{UnhandledStatusException, CancelledException, TimeoutException}
+import monifu.concurrent.Scheduler
 
 
 /**
@@ -18,7 +18,7 @@ import shade.{UnhandledStatusException, CancelledException, TimeoutException}
  *
  * See the parent trait (Cache) for API docs.
  */
-class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionContext) extends Memcached {
+class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcached {
   private[this] implicit val context = ec
 
   /**
@@ -293,7 +293,7 @@ class MemcachedImpl(config: Configuration, scheduler: Scheduler, ec: ExecutionCo
 
     import scala.collection.JavaConverters._
     val addresses = AddrUtil.getAddresses(config.addresses).asScala
-    new SpyMemcachedIntegration(conn.build(), addresses, scheduler)
+    new SpyMemcachedIntegration(conn.build(), addresses, Scheduler.fromContext(context))
   }
 }
 

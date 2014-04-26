@@ -1,18 +1,19 @@
 name := "shade"
 
-organization in ThisBuild := "com.bionicspirit"
+organization := "com.bionicspirit"
 
-version in ThisBuild := "1.5.0"
+version := "1.6.0-SNAPSHOT"
 
-scalaVersion in ThisBuild := "2.10.3"
+scalaVersion := "2.10.4"
 
-scalaVersion := "2.10.3"
+crossScalaVersions := Seq("2.10.4", "2.11.0")
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
 scalacOptions in ThisBuild ++= Seq(
-  "-unchecked", "-deprecation", "-feature",
-  "-target:jvm-1.6"
+  "-unchecked", "-deprecation", "-feature", "-Xlint", "-target:jvm-1.6", "-Yinline-warnings",
+  "-optimise", "-Ywarn-adapted-args", "-Ywarn-dead-code", "-Ywarn-inaccessible",
+  "-Ywarn-nullary-override", "-Ywarn-nullary-unit"
 )
 
 licenses in ThisBuild := Seq("MIT" -> url("http://opensource.org/licenses/MIT"))
@@ -29,17 +30,36 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "spy" % "spymemcached" % "2.8.4",
-  "org.scalaz" %% "scalaz-core" % "7.0.4",
-  "com.bionicspirit" %% "scala-atomic" % "0.1",
-  "org.slf4j" % "slf4j-api" % "1.7.4",
-  "org.scala-lang" % "scala-compiler" % "2.10.3",
-  "com.typesafe.akka" %% "akka-actor" % "2.2.1" % "provided;test",
+  "org.monifu" %% "monifu-core" % "0.6.1",
+  "org.slf4j" % "slf4j-api" % "1.7.7",
   "ch.qos.logback" % "logback-classic" % "1.0.6" % "test",
-  "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+  "org.scalatest" %% "scalatest" % "2.1.3" % "test",
   "junit" % "junit" % "4.10" % "test"
 )
 
-pomExtra in ThisBuild := (
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { _ => false } // removes optional dependencies
+
+pomExtra in ThisBuild :=
+  <url>https://github.com/alexandru/shade</url>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
   <scm>
     <url>git@github.com:bionicspirit/shade.git</url>
     <connection>scm:git:git@github.com:bionicspirit/shade.git</connection>
@@ -50,4 +70,4 @@ pomExtra in ThisBuild := (
       <name>Alexandru Nedelcu</name>
       <url>http://bionicspirit.com</url>
     </developer>
-  </developers>)
+  </developers>

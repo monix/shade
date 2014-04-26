@@ -3,10 +3,11 @@ package shade.memcached
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 import shade.inmemory.InMemoryCache
-import akka.actor.Scheduler
 
 
-class FakeMemcached(scheduler: Scheduler)(implicit ec: ExecutionContext) extends Memcached {
+class FakeMemcached(context: ExecutionContext) extends Memcached {
+  private[this] implicit val ec = context
+
   def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     value match {
       case null =>
@@ -54,5 +55,5 @@ class FakeMemcached(scheduler: Scheduler)(implicit ec: ExecutionContext) extends
     cache.close()
   }
 
-  private[this] val cache = InMemoryCache(scheduler)
+  private[this] val cache = InMemoryCache(context)
 }

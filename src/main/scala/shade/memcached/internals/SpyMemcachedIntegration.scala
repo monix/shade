@@ -8,13 +8,13 @@ import collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.util.{Try, Failure, Success}
-import akka.actor.Scheduler
 import scala.util.control.NonFatal
 import net.spy.memcached.auth.AuthThreadMonitor
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import java.io.IOException
 import shade.UnhandledStatusException
-import scala.concurrent.atomic.Atomic
+import monifu.concurrent.atomic.Atomic
+import monifu.concurrent.Scheduler
 
 
 /**
@@ -104,9 +104,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       blatch.await(timeout, unit)
     }
     catch {
-      case e: InterruptedException => {
+      case e: InterruptedException =>
         throw new RuntimeException("Interrupted waiting for queues", e)
-      }
     }
   }
 
@@ -375,7 +374,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   }
 
   protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[T]] = {
-    val cancellable = scheduler.scheduleOnce(atMost) {
+    val cancelable = scheduler.scheduleOnce(atMost, {
       promise.tryComplete {
         if (op.hasErrored)
           Failure(op.getException)
@@ -384,15 +383,15 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         else
           Success(FailedResult(key, TimedOutStatus))
       }
-    }
+    })
 
     val future = promise.future
 
     future.onComplete {
       case msg =>
         try
-          if (!cancellable.isCancelled)
-            cancellable.cancel()
+          if (!cancelable.isCanceled)
+            cancelable.cancel()
         catch {
           case NonFatal(_) =>
         }
@@ -435,9 +434,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         seconds
       else
         System.currentTimeMillis() / 1000 + seconds
-
-    // infinite duration (set to 365 days)
     case _ =>
+      // infinite duration (set to 365 days)
       System.currentTimeMillis() / 1000 + 31536000 // 60 * 60 * 24 * 365 -> 365 days in seconds
   }
 }

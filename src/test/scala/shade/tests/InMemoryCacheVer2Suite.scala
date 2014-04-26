@@ -7,7 +7,6 @@ import concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Await}
 import shade.inmemory.InMemoryCache
-import akka.actor.ActorSystem
 
 
 @RunWith(classOf[JUnitRunner])
@@ -197,12 +196,9 @@ class InMemoryCacheVer2Suite extends FunSuite {
   }
 
   def withInstance[T](cb: InMemoryCache => T) = {
-    val system = ActorSystem("default")
-    val instance = InMemoryCache(system.scheduler)
-    try cb(instance)
-    finally {
+    val instance = InMemoryCache(global)
+    try cb(instance) finally {
       instance.close()
-      system.shutdown()
     }
   }
 }

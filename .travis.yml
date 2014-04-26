@@ -1,5 +1,11 @@
 language: scala
 scala:
-  - 2.10.2
+  - 2.10.4
+  - 2.11.0
+jdk:
+  - openjdk6
+  - openjdk7
+  - oraclejdk7
+  - oraclejdk8
 services:
   - memcache

@@ -2,7 +2,6 @@ package shade.memcached
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Await, Future}
-import akka.actor.Scheduler
 
 trait Memcached extends java.io.Closeable {
   /**
@@ -101,6 +100,6 @@ trait Memcached extends java.io.Closeable {
 }
 
 object Memcached {
-  def apply(config: Configuration, scheduler: Scheduler, ec: ExecutionContext): Memcached =
-    new MemcachedImpl(config, scheduler, ec)
+  def apply(config: Configuration, ec: ExecutionContext): Memcached =
+    new MemcachedImpl(config, ec)
 }
