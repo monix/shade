@@ -273,7 +273,13 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val promise = Promise[Result[Boolean]]()
     val result = new MutablePartialResult[Boolean]
 
-    val op = opFact.delete(key, new OperationCallback {
+    val op = opFact.delete(key, new DeleteOperation.Callback {
+      def gotData(cas: Long): Unit = ()
+
+      def complete() {
+        result.completePromise(key, promise)
+      }
+
       def receivedStatus(opStatus: OperationStatus) {
         if (statusTranslation.isDefinedAt(opStatus))
           statusTranslation(opStatus) match {
@@ -288,10 +294,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         else
           throw new UnhandledStatusException(
             "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
-      }
-
-      def complete() {
-        result.completePromise(key, promise)
       }
     })
 
@@ -310,7 +312,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
             case CASNotFoundStatus =>
               result.tryComplete(Success(SuccessfulResult(key, None)))
             case CASSuccessStatus =>
-            // nothing
+              // nothing
             case failure =>
               result.tryComplete(Success(FailedResult(key, failure)))
           }
@@ -401,7 +403,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
             MemcachedConnection.opTimedOut(op)
             op.timeOut()
             if (!op.isCancelled) try op.cancel() catch { case NonFatal(_) => }
-          case Success(FailedResult(_, CancelledStatus | IllegalCompleteStatus)) =>
+          case Success(FailedResult(_, _)) =>
             if (!op.isCancelled) try op.cancel() catch { case NonFatal(_) => }
           case _ =>
             MemcachedConnection.opSucceeded(op)
@@ -424,6 +426,12 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
           CASNotFoundStatus
         case CASResponse.OK =>
           CASSuccessStatus
+        case CASResponse.OBSERVE_ERROR_IN_ARGS =>
+          CASObserveErrorInArgs
+        case CASResponse.OBSERVE_MODIFIED =>
+          CASObserveModified
+        case CASResponse.OBSERVE_TIMEOUT =>
+          CASObserveTimeout
       }
   }
 
