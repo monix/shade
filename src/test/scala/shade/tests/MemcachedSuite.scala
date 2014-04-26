@@ -175,10 +175,10 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
           case Some(nr) => nr + 1
         }
 
-      val seq = concurrent.Future.sequence((0 until 1000).map(nr => incrementValue))
+      val seq = concurrent.Future.sequence((0 until 100).map(nr => incrementValue))
       Await.result(seq, 20.seconds)
 
-      assert(cache.awaitGet[Int]("some-key") === Some(1000))
+      assert(cache.awaitGet[Int]("some-key") === Some(100))
     }
   }
 
@@ -193,10 +193,10 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
           case Some(nr) => nr + 1
         }
 
-      val seq = concurrent.Future.sequence((0 until 1000).map(nr => incrementValue))
+      val seq = concurrent.Future.sequence((0 until 100).map(nr => incrementValue))
       Await.result(seq, 20.seconds)
 
-      assert(cache.awaitGet[Int]("some-key") === Some(1000))
+      assert(cache.awaitGet[Int]("some-key") === Some(100))
     }
   }
 

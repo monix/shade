@@ -1,10 +1,10 @@
 package shade.inmemory
 
 import concurrent.duration._
-import scala.concurrent.atomic.Atomic
+import monifu.concurrent.atomic.AtomicAny
 import scala.concurrent.{Promise, ExecutionContext, Future}
+import monifu.concurrent.Scheduler
 import scala.annotation.tailrec
-import akka.actor.Scheduler
 import scala.util.Try
 
 
@@ -35,11 +35,13 @@ trait InMemoryCache extends java.io.Closeable {
 }
 
 object InMemoryCache {
-  def apply(scheduler: Scheduler)(implicit ec: ExecutionContext): InMemoryCache =
-    new InMemoryCacheImpl(scheduler)
+  def apply(ec: ExecutionContext): InMemoryCache =
+    new InMemoryCacheImpl()(ec)
 }
 
-private[inmemory] final class InMemoryCacheImpl(scheduler: Scheduler)(implicit ec: ExecutionContext) extends InMemoryCache {
+private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) extends InMemoryCache {
+  private[this] val scheduler = Scheduler.fromContext(ec)
+
   def get[T](key: String): Option[T] = {
     val currentState = stateRef.get
 
@@ -119,7 +121,7 @@ private[inmemory] final class InMemoryCacheImpl(scheduler: Scheduler)(implicit e
     val currentValue = currentState.values.get(key) match {
       case Some(value) if value.expiresAt > System.currentTimeMillis() =>
         Some(value.value.asInstanceOf[Future[T]])
-      case None =>
+      case _ =>
         None
     }
 
@@ -245,7 +247,7 @@ private[inmemory] final class InMemoryCacheImpl(scheduler: Scheduler)(implicit e
     stateRef.get.maintenancePromise.future
 
   def close(): Unit = {
-    if (!task.isCancelled) Try(task.cancel())
+    if (!task.isCanceled) Try(task.cancel())
     val state = stateRef.getAndSet(CacheState())
     state.maintenancePromise.trySuccess(0)
   }
@@ -256,9 +258,9 @@ private[inmemory] final class InMemoryCacheImpl(scheduler: Scheduler)(implicit e
     else
       System.currentTimeMillis() + 365.days.toMillis
 
-  private[this] val task = scheduler.schedule(3.seconds, 3.seconds) {
+  private[this] val task = scheduler.scheduleRepeated(3.seconds, 3.seconds, {
     clean()
-  }
+  })
 
   private[this] case class CacheValue(
     value: Any,
@@ -271,5 +273,5 @@ private[inmemory] final class InMemoryCacheImpl(scheduler: Scheduler)(implicit e
     maintenancePromise: Promise[Int] = Promise[Int]()
   )
 
-  private[this] val stateRef = Atomic(CacheState())
+  private[this] val stateRef = AtomicAny(CacheState())
 }

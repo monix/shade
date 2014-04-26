@@ -2,7 +2,7 @@ package shade.memcached.internals
 
 import util.{Success, Try}
 import concurrent.{Promise, Future}
-import concurrent.atomic.Atomic
+import monifu.concurrent.atomic.AtomicAny
 
 sealed trait PartialResult[+T]
 case class FinishedResult[T](result: Try[Result[T]]) extends PartialResult[T]
@@ -28,5 +28,5 @@ final class MutablePartialResult[T] {
   }
 
   private[this] val _result =
-    Atomic[PartialResult[T]](NoResultAvailable)
+    AtomicAny(NoResultAvailable : PartialResult[T])
 }
