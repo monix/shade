@@ -31,11 +31,6 @@ Add these resolvers:
 
 ```scala
 resolvers ++= Seq(
-  // where Shade lives
-  "BionicSpirit Releases" at "http://maven.bionicspirit.com/releases/",
-  "BionicSpirit Snapshots at "http://maven.bionicspirit.com/snapshots/",
-  // just in case you don't have it already
-  "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/",
   // for SpyMemcached
   "Spy" at "http://files.couchbase.com/maven2/"
 )
@@ -44,7 +39,7 @@ resolvers ++= Seq(
 Specify the dependency:
 
 ```scala
-dependencies += "com.bionicspirit" %% "shade" % "1.5.0"
+dependencies += "com.bionicspirit" %% "shade" % "1.6.0"
 ```
 
 ## Usage - Memcached
@@ -59,18 +54,14 @@ case class.
 ```scala
 import shade.memcached._
 import scala.concurrent.ExecutionContext.Implicits.{global => ec}
-import akka.actor.ActorSystem
 
 val memcached = 
-  Memcached(Configuration("127.0.0.1:11211"), ActorSystem("default").scheduler, ec)
+  Memcached(Configuration("127.0.0.1:11211"), ec)
 ```
 
 As you can see, you also need an
-[Akka scheduler](http://doc.akka.io/docs/akka/2.2.1/scala/scheduler.html)
-and a Scala
 [ExecutionContext](http://www.scala-lang.org/api/current/#scala.concurrent.ExecutionContext)
-passed explicitly. As an implementation detail, the scheduler is used
-for triggering timeouts and the execution context represents the
+passed explicitly. As an implementation detail, the execution context represents the
 thread-pool in which requests get processed. 
 
 ### Simple non-blocking requests
