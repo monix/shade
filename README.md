@@ -241,7 +241,7 @@ implicit object UserCodec extends Codec[User] {
 ```
 
 N.B.
-[Scala's spores](http://docs.scala-lang.org/sips/pending/spores.html)
+[Scala's Pickles](https://github.com/scala/pickling)
 are a much better alternative to Java's object input/output streams,
 when they'll land in Scala 2.11.
 
