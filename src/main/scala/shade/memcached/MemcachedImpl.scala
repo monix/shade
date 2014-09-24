@@ -271,6 +271,9 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
           case FailureMode.Redistribute =>
             SpyFailureMode.Redistribute
         })
+        .setOpQueueFactory(config.opQueueFactory.orNull)
+        .setReadOpQueueFactory(config.readQueueFactory.orNull)
+        .setWriteOpQueueFactory(config.writeQueueFactory.orNull)
 
       val withTimeout = config.operationTimeout match {
         case duration: FiniteDuration =>
