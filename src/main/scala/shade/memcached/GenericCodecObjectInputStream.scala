@@ -15,8 +15,10 @@ import scala.util.Try
  * Play's test/run modes.
  */
 class GenericCodecObjectInputStream(classTag: ClassTag[_], in: InputStream) extends ObjectInputStream(in) {
-  val classTagClassLoader = classTag.runtimeClass.getClassLoader
-  val threadLocalClassLoader = Thread.currentThread().getContextClassLoader
+
+  private def classTagClassLoader = classTag.runtimeClass.getClassLoader
+  private def threadLocalClassLoader = Thread.currentThread().getContextClassLoader
+
   override protected def resolveClass(desc: ObjectStreamClass): Class[_] = {
     Try(classTagClassLoader.loadClass(desc.getName)).
       orElse(Try(super.resolveClass(desc))).
