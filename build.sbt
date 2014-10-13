@@ -30,6 +30,10 @@ libraryDependencies ++= Seq(
   "junit" % "junit" % "4.10" % "test"
 )
 
+osgiSettings
+
+  com.typesafe.sbt.osgi.OsgiKeys.exportPackage := Seq("shade.*")
+
 publishMavenStyle := true
 
 publishArtifact in Test := false
