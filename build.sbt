@@ -2,11 +2,9 @@ name := "shade"
 
 organization := "com.bionicspirit"
 
-version := "1.7.0-SNAPSHOT"
+version := "1.7.0"
 
-scalaVersion := "2.10.4"
-
-crossScalaVersions := Seq("2.10.4", "2.11.0")
+scalaVersion := "2.11.7"
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
