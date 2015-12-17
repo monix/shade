@@ -293,7 +293,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
 
     import scala.collection.JavaConverters._
     val addresses = AddrUtil.getAddresses(config.addresses).asScala
-    new SpyMemcachedIntegration(conn.build(), addresses, Scheduler.fromContext(context))
+    new SpyMemcachedIntegration(conn.build(), addresses, Scheduler(context))
   }
 }
 

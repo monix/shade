@@ -40,7 +40,7 @@ object InMemoryCache {
 }
 
 private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) extends InMemoryCache {
-  private[this] val scheduler = Scheduler.fromContext(ec)
+  private[this] val scheduler = Scheduler(ec)
 
   def get[T](key: String): Option[T] = {
     val currentState = stateRef.get
@@ -247,7 +247,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     stateRef.get.maintenancePromise.future
 
   def close(): Unit = {
-    if (!task.isCanceled) Try(task.cancel())
+    Try(task.cancel())
     val state = stateRef.getAndSet(CacheState())
     state.maintenancePromise.trySuccess(0)
   }
@@ -258,9 +258,10 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     else
       System.currentTimeMillis() + 365.days.toMillis
 
-  private[this] val task = scheduler.scheduleRepeated(3.seconds, 3.seconds, {
-    clean()
-  })
+  private[this] val task =
+    scheduler.scheduleWithFixedDelay(3.seconds, 3.seconds) {
+      clean()
+    }
 
   private[this] case class CacheValue(
     value: Any,
