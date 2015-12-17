@@ -1,7 +1,6 @@
 package shade.tests
 
 import org.scalatest.FunSuite
-import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext.Implicits.global
 import shade.testModels.Impression
@@ -10,7 +9,6 @@ import scala.concurrent.duration._
 import scala.concurrent.Await
 
 
-@RunWith(classOf[JUnitRunner])
 class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   implicit val timeout = 5.second
 

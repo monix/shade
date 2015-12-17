@@ -18,6 +18,8 @@ import monifu.concurrent.Scheduler
 
 
 /**
+ * Hooking in the SpyMemcached Internals.
+ *
  * @param cf is Spy's Memcached connection factory
  * @param addrs is a list of addresses to connect to
  * @param scheduler is for making timeouts work
@@ -26,7 +28,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   extends SpyObject with ConnectionObserver {
 
   require(cf != null, "Invalid connection factory")
-  require(addrs != null && !addrs.isEmpty, "Invalid addresses list")
+  require(addrs != null && addrs.nonEmpty, "Invalid addresses list")
   assert(cf.getOperationTimeout > 0, "Operation timeout must be positive")
 
   protected final val opFact = cf.getOperationFactory
@@ -376,7 +378,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   }
 
   protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[T]] = {
-    val cancelable = scheduler.scheduleOnce(atMost, {
+    val cancelable = scheduler.scheduleOnce(atMost) {
       promise.tryComplete {
         if (op.hasErrored)
           Failure(op.getException)
@@ -385,15 +387,15 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         else
           Success(FailedResult(key, TimedOutStatus))
       }
-    })
+    }
 
     val future = promise.future
 
     future.onComplete {
       case msg =>
-        try
-          if (!cancelable.isCanceled)
-            cancelable.cancel()
+        try {
+          cancelable.cancel()
+        }
         catch {
           case NonFatal(_) =>
         }

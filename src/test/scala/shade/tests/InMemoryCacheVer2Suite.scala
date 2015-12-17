@@ -1,7 +1,6 @@
 package shade.tests
 
 import org.scalatest.FunSuite
-import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -9,7 +8,6 @@ import scala.concurrent.{Future, Await}
 import shade.inmemory.InMemoryCache
 
 
-@RunWith(classOf[JUnitRunner])
 class InMemoryCacheVer2Suite extends FunSuite {
   test("get(), set()") {
     withInstance { cache =>
