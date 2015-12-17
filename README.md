@@ -37,6 +37,13 @@ as it's final and a port for 2.9.x is in progress.
 - [Version 1.7 - December 18, 2015](release-notes/1.7.md)
 - [Version 1.6.0 - April 26, 2014](release-notes/1.6.0.md)
 
+## Maintainers
+
+These are the people maintaining this project that you can annoy:
+
+- Alex: @alexandru
+- Lloyd: @lloydmeta
+
 ## Usage From SBT
 
 ```scala
