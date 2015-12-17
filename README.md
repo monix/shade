@@ -1,5 +1,7 @@
 # Shade - Memcached Client for Scala
 
+[![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## MAINTAINERS WANTED (Dec 18, 2015)
 
 This project is badly maintained due to me not actively working 
