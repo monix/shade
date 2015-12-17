@@ -100,9 +100,9 @@ trait Memcached extends java.io.Closeable {
 }
 
 object Memcached {
-  def apply(config: Configuration, ec: ExecutionContext): Memcached =
-    new MemcachedImpl(config, ec)
-
+  /**
+   * Builds a [[Memcached]] instance. Needs a [[Configuration]].
+   */
   def apply(config: Configuration)(implicit ec: ExecutionContext): Memcached =
     new MemcachedImpl(config, ec)
 }
