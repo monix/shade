@@ -22,7 +22,7 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
       operationTimeout = opTimeout.getOrElse(defaultConfig.operationTimeout)
     )
 
-    Memcached(config, global)
+    Memcached(config)(global)
   }
 
   def withFakeMemcached[T](cb: Memcached => T): T = {
