@@ -34,13 +34,13 @@ as it's final and a port for 2.9.x is in progress.
 
 ## Release Notes
 
-- [Version 1.7.0 - December 18, 2015](release-notes/1.7.0.md)
+- [Version 1.7 - December 18, 2015](release-notes/1.7.md)
 - [Version 1.6.0 - April 26, 2014](release-notes/1.6.0.md)
 
 ## Usage From SBT
 
 ```scala
-dependencies += "com.bionicspirit" %% "shade" % "1.7.0"
+dependencies += "com.bionicspirit" %% "shade" % "1.7.1"
 ```
 
 ### Initializing the Memcached Client
@@ -52,10 +52,10 @@ case class.
 
 ```scala
 import shade.memcached._
-import scala.concurrent.ExecutionContext.Implicits.{global => ec}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 val memcached = 
-  Memcached(Configuration("127.0.0.1:11211"), ec)
+  Memcached(Configuration("127.0.0.1:11211"))
 ```
 
 As you can see, you also need an
