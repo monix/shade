@@ -1,7 +1,7 @@
 package shade.memcached
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 trait Memcached extends java.io.Closeable {
   /**
@@ -102,4 +102,37 @@ trait Memcached extends java.io.Closeable {
 object Memcached {
   def apply(config: Configuration, ec: ExecutionContext): Memcached =
     new MemcachedImpl(config, ec)
+
+  /**
+   * Create new Memcached
+   *
+   * @param addresses         the list of server addresses, separated by space,
+   *                          e.g. `"192.168.1.3:11211 192.168.1.4:11211"`
+   * @param authentication    the authentication credentials (if None, then no authentication is performed)
+   *
+   * @param keysPrefix        is the prefix to be added to used keys when storing/retrieving values,
+   *                          useful for having the same Memcached instances used by several
+   *                          applications to prevent them from stepping over each other.
+   *
+   * @param protocol          can be either `Text` or `Binary`
+   *
+   * @param failureMode       specifies failure mode for SpyMemcached when connections drop:
+   *                          - in Retry mode a connection is retried until it recovers.
+   *                          - in Cancel mode all operations are cancelled
+   *                          - in Redistribute mode, the client tries to redistribute operations to other nodes
+   *
+   * @param operationTimeout  is the default operation timeout; When the limit is reached, the
+   *                          Future responses finish with Failure(TimeoutException)
+   */
+  def apply(
+    addresses: String,
+    authentication: Option[AuthConfiguration] = None,
+    keysPrefix: Option[String] = None,
+    protocol: Protocol.Value = Protocol.Binary,
+    failureMode: FailureMode.Value = FailureMode.Retry,
+    operationTimeout: FiniteDuration = 1.second
+  )(implicit ec: ExecutionContext): Memcached = {
+    val config = Configuration(addresses, authentication, keysPrefix, protocol, failureMode, operationTimeout)
+    apply(config, ec)
+  }
 }
