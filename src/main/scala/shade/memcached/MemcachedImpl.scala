@@ -251,8 +251,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
 
   private[this] val prefix = config.keysPrefix.getOrElse("")
   private[this] val instance = {
-    System.setProperty("net.spy.log.LoggerImpl",
-      "shade.memcached.internals.Slf4jLogger")
+    if (System.getProperty("net.spy.log.LoggerImpl") == null) {
+      System.setProperty("net.spy.log.LoggerImpl",
+        "shade.memcached.internals.Slf4jLogger")
+    }
 
     val conn = {
       val builder = new ConnectionFactoryBuilder()
