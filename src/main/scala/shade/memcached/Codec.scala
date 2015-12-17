@@ -2,6 +2,7 @@ package shade.memcached
 
 import java.io._
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 import java.io.Serializable
 
@@ -97,7 +98,6 @@ trait BaseCodecs {
 
 trait MemcachedCodecs extends BaseCodecs {
   private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
-    def classLoader = classTag.runtimeClass.getClassLoader
 
     def using[T <: Closeable, R](obj: T)(f: T => R): R =
       try
@@ -118,18 +118,7 @@ trait MemcachedCodecs extends BaseCodecs {
 
     def deserialize(data: Array[Byte]): S =
       using (new ByteArrayInputStream(data)) { buf =>
-        val in = new ObjectInputStream(buf) {
-          override def resolveClass(desc: ObjectStreamClass): Class[_] = {
-            try
-              classLoader.loadClass(desc.getName)
-            catch {
-              case ex: Exception =>
-                // try fallback to super implementation
-                super.resolveClass(desc)
-            }
-          }
-        }
-
+        val in = new GenericCodecObjectInputStream(classTag, buf)
         using (in) { inp =>
           inp.readObject().asInstanceOf[S]
         }
