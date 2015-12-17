@@ -1,6 +1,7 @@
 package shade.memcached
 
 import concurrent.duration._
+import net.spy.memcached.ops.OperationQueueFactory
 
 /**
  * Represents the Memcached connection configuration.
@@ -22,6 +23,18 @@ import concurrent.duration._
  *
  * @param operationTimeout  is the default operation timeout; When the limit is reached, the
  *                          Future responses finish with Failure(TimeoutException)
+ *
+ * @param opQueueFactory    can be used to customize the operations queue, 
+ *                          i.e. the queue of operations waiting to be processed by SpyMemcached.
+ *                          If `None`, the default SpyMemcached implementation (a bounded ArrayBlockingQueue) is used.
+ *
+ * @param readQueueFactory  can be used to customize the read queue, 
+ *                          i.e. the queue of Memcached responses waiting to be processed by SpyMemcached.
+ *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
+ *
+ * @param writeQueueFactory can be used to customize the write queue, 
+ *                          i.e. the queue of operations waiting to be sent to Memcached by SpyMemcached.
+ *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
  */
 case class Configuration(
   addresses: String,
@@ -29,7 +42,10 @@ case class Configuration(
   keysPrefix: Option[String] = None,
   protocol: Protocol.Value = Protocol.Binary,
   failureMode: FailureMode.Value = FailureMode.Retry,
-  operationTimeout: FiniteDuration = 1.second
+  operationTimeout: FiniteDuration = 1.second,
+  opQueueFactory: Option[OperationQueueFactory] = None,
+  writeQueueFactory: Option[OperationQueueFactory] = None,
+  readQueueFactory: Option[OperationQueueFactory] = None
 )
 
 object Protocol extends Enumeration {
