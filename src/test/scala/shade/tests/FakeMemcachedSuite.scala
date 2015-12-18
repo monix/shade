@@ -1,13 +1,11 @@
 package shade.tests
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext.Implicits.global
 import shade.testModels.Impression
-import java.io.{ObjectOutputStream, ByteArrayOutputStream}
+import java.io.{ ObjectOutputStream, ByteArrayOutputStream }
 import scala.concurrent.duration._
 import scala.concurrent.Await
-
 
 class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   implicit val timeout = 5.second
@@ -204,7 +202,6 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
-
   test("big-instance-1-manual") {
     withFakeMemcached { cache =>
       val byteOut = new ByteArrayOutputStream()
@@ -221,7 +218,6 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
       assert(inBytes.get.length == byteArray.length)
     }
   }
-
 
   test("big-instance-2") {
     withFakeMemcached { cache =>

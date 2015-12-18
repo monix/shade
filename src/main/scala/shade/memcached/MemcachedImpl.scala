@@ -1,17 +1,16 @@
 package shade.memcached
 
 import internals._
-import concurrent.{Future, ExecutionContext}
-import net.spy.memcached.{FailureMode => SpyFailureMode, _}
-import net.spy.memcached.ConnectionFactoryBuilder.{Protocol => SpyProtocol}
-import net.spy.memcached.auth.{PlainCallbackHandler, AuthDescriptor}
+import concurrent.{ Future, ExecutionContext }
+import net.spy.memcached.{ FailureMode => SpyFailureMode, _ }
+import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
+import net.spy.memcached.auth.{ PlainCallbackHandler, AuthDescriptor }
 import concurrent.duration._
 import java.util.concurrent.TimeUnit
 import shade.memcached.internals.SuccessfulResult
 import shade.memcached.internals.FailedResult
-import shade.{UnhandledStatusException, CancelledException, TimeoutException}
+import shade.{ UnhandledStatusException, CancelledException, TimeoutException }
 import monifu.concurrent.Scheduler
-
 
 /**
  * Memcached client implementation based on SpyMemcached.
@@ -231,7 +230,8 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       throw new CancelledException(withoutPrefix(k))
     case FailedResult(k, unhandled) =>
       throw new UnhandledStatusException(
-        "For key %s - %s".format(withoutPrefix(k), unhandled.getClass.getName))
+        "For key %s - %s".format(withoutPrefix(k), unhandled.getClass.getName)
+      )
   }
 
   @inline
@@ -252,8 +252,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
   private[this] val prefix = config.keysPrefix.getOrElse("")
   private[this] val instance = {
     if (System.getProperty("net.spy.log.LoggerImpl") == null) {
-      System.setProperty("net.spy.log.LoggerImpl",
-        "shade.memcached.internals.Slf4jLogger")
+      System.setProperty(
+        "net.spy.log.LoggerImpl",
+        "shade.memcached.internals.Slf4jLogger"
+      )
     }
 
     val conn = {
@@ -287,8 +289,11 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       val withAuth = config.authentication match {
         case Some(credentials) =>
           withTimeout.setAuthDescriptor(
-            new AuthDescriptor(Array("PLAIN"),
-              new PlainCallbackHandler(credentials.username, credentials.password)))
+            new AuthDescriptor(
+              Array("PLAIN"),
+              new PlainCallbackHandler(credentials.username, credentials.password)
+            )
+          )
         case None =>
           withTimeout
       }
