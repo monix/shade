@@ -1,6 +1,6 @@
 # Shade - Memcached Client for Scala
 
-[![Build Status](https://travis-ci.org/alexandru/shade.png?branch=v1.7.1)](https://travis-ci.org/alexandru/shade) [![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/alexandru/shade.svg)](https://travis-ci.org/alexandru/shade) [![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## MAINTAINERS WANTED (Dec 18, 2015)
 
@@ -29,8 +29,7 @@ The client is production quality, being in usage at Epigrams, Inc. for
 serving thousands of requests per second per instance of real
 traffic. It doesn't leak, it doesn't break, it works well under pressure.
 
-Supported for Scala versions: 2.10.x, to be updated for 2.11 as soon
-as it's final and a port for 2.9.x is in progress.
+Supported for Scala versions: 2.10.x and 2.11.x
 
 ## Release Notes
 
