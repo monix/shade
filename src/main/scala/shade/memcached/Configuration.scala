@@ -24,15 +24,15 @@ import net.spy.memcached.ops.OperationQueueFactory
  * @param operationTimeout  is the default operation timeout; When the limit is reached, the
  *                          Future responses finish with Failure(TimeoutException)
  *
- * @param opQueueFactory    can be used to customize the operations queue, 
+ * @param opQueueFactory    can be used to customize the operations queue,
  *                          i.e. the queue of operations waiting to be processed by SpyMemcached.
  *                          If `None`, the default SpyMemcached implementation (a bounded ArrayBlockingQueue) is used.
  *
- * @param readQueueFactory  can be used to customize the read queue, 
+ * @param readQueueFactory  can be used to customize the read queue,
  *                          i.e. the queue of Memcached responses waiting to be processed by SpyMemcached.
  *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
  *
- * @param writeQueueFactory can be used to customize the write queue, 
+ * @param writeQueueFactory can be used to customize the write queue,
  *                          i.e. the queue of operations waiting to be sent to Memcached by SpyMemcached.
  *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
  */

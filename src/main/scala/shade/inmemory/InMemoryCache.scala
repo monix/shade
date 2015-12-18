@@ -2,11 +2,10 @@ package shade.inmemory
 
 import concurrent.duration._
 import monifu.concurrent.atomic.AtomicAny
-import scala.concurrent.{Promise, ExecutionContext, Future}
+import scala.concurrent.{ Promise, ExecutionContext, Future }
 import monifu.concurrent.Scheduler
 import scala.annotation.tailrec
 import scala.util.Try
-
 
 trait InMemoryCache extends java.io.Closeable {
   def get[T](key: String): Option[T]
@@ -140,12 +139,10 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
         if (stateRef.compareAndSet(currentState, newState)) {
           promise.completeWith(cb)
           future
-        }
-        else
+        } else
           cachedFuture(key, expiry)(cb)
     }
   }
-
 
   def compareAndSet[T](key: String, expected: Option[T], update: T, expiry: Duration): Boolean = {
     val current = stateRef.get
@@ -157,7 +154,6 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
       case _ =>
         None
     }
-
 
     if (currentValue != expected)
       false
@@ -220,8 +216,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
         val newState = CacheState(values, firstExpiry)
         ((currentState.maintenancePromise, difference), newState)
-      }
-      else {
+      } else {
         val newState = currentState.copy(maintenancePromise = Promise())
         ((currentState.maintenancePromise, 0), newState)
       }
@@ -229,7 +224,6 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
     promise.trySuccess(difference)
   }
-
 
   def size: Int = {
     val ts = System.currentTimeMillis()
