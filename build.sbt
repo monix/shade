@@ -84,6 +84,8 @@ publishArtifact in Test := false
 
 pomIncludeRepository := { _ => false } // removes optional dependencies
 
+scalariformSettings
+
 pomExtra in ThisBuild :=
   <url>https://github.com/alexandru/shade</url>
     <licenses>

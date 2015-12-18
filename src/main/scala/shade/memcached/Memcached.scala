@@ -1,7 +1,7 @@
 package shade.memcached
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Await, Future}
+import scala.concurrent.{ ExecutionContext, Await, Future }
 
 trait Memcached extends java.io.Closeable {
   /**

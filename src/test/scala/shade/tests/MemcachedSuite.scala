@@ -1,15 +1,13 @@
 package shade.tests
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
 import scala.concurrent.ExecutionContext.Implicits.global
-import shade.testModels.{ContentPiece, Impression}
-import java.io.{ObjectOutputStream, ByteArrayOutputStream}
+import shade.testModels.{ ContentPiece, Impression }
+import java.io.{ ObjectOutputStream, ByteArrayOutputStream }
 import shade.memcached.FailureMode
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import shade.TimeoutException
-
 
 class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
   implicit val timeout = 5.second
@@ -216,8 +214,7 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       try {
         Await.result(seq, 20.seconds)
         fail("should throw exception")
-      }
-      catch {
+      } catch {
         case ex: TimeoutException =>
           assert(ex.getMessage === "some-key")
       }
@@ -243,8 +240,7 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       try {
         Await.result(seq, 20.seconds)
         fail("should throw exception")
-      }
-      catch {
+      } catch {
         case ex: TimeoutException =>
           assert(ex.key === "some-key")
       }
@@ -283,7 +279,6 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       assert(inBytes.get.length == byteArray.length)
     }
   }
-
 
   test("big-instance-2") {
     withCache("big-instance-2") { cache =>

@@ -29,8 +29,7 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
     val cache = new FakeMemcached(global)
     try {
       cb(cache)
-    }
-    finally {
+    } finally {
       cache.close()
     }
   }
@@ -40,8 +39,7 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
 
     try {
       cb(cache)
-    }
-    finally {
+    } finally {
       cache.close()
     }
   }
