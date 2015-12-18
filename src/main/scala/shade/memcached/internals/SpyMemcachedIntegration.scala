@@ -1,21 +1,20 @@
 package shade.memcached.internals
 
-import java.net.{SocketAddress, InetSocketAddress}
+import java.net.{ SocketAddress, InetSocketAddress }
 import net.spy.memcached.compat.SpyObject
 import net.spy.memcached.ops._
 import net.spy.memcached._
 import collection.JavaConverters._
-import scala.concurrent.duration.{Duration, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Promise, Future}
-import scala.util.{Try, Failure, Success}
+import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.{ ExecutionContext, Promise, Future }
+import scala.util.{ Try, Failure, Success }
 import scala.util.control.NonFatal
 import net.spy.memcached.auth.AuthThreadMonitor
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.{ CountDownLatch, TimeUnit }
 import java.io.IOException
 import shade.UnhandledStatusException
 import monifu.concurrent.atomic.Atomic
 import monifu.concurrent.Scheduler
-
 
 /**
  * Hooking in the SpyMemcached Internals.
@@ -25,7 +24,7 @@ import monifu.concurrent.Scheduler
  * @param scheduler is for making timeouts work
  */
 class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddress], scheduler: Scheduler)
-  extends SpyObject with ConnectionObserver {
+    extends SpyObject with ConnectionObserver {
 
   require(cf != null, "Invalid connection factory")
   require(addrs != null && addrs.nonEmpty, "Invalid addresses list")
@@ -104,8 +103,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     try {
       blatch.await(timeout, unit)
-    }
-    catch {
+    } catch {
       case e: InterruptedException =>
         throw new RuntimeException("Interrupted waiting for queues", e)
     }
@@ -144,8 +142,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     if (!shuttingDown.compareAndSet(expect = false, update = true)) {
       getLogger.info("Suppressing duplicate attempt to shut down")
       false
-    }
-    else {
+    } else {
       val baseName: String = mconn.getName
       mconn.setName(baseName + " - SHUTTING DOWN")
 
@@ -153,17 +150,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         if (timeout > 0) {
           mconn.setName(baseName + " - SHUTTING DOWN (waiting)")
           waitForQueues(timeout, unit)
-        }
-        else
+        } else
           true
-      }
-      finally {
+      } finally {
         try {
           mconn.setName(baseName + " - SHUTTING DOWN (telling client)")
           mconn.shutdown()
           mconn.setName(baseName + " - SHUTTING DOWN (informed client)")
-        }
-        catch {
+        } catch {
           case e: IOException =>
             getLogger.warn("exception while shutting down": Any, e: Throwable)
         }
@@ -189,7 +183,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
 
       def gotData(k: String, flags: Int, data: Array[Byte]) {
@@ -222,7 +217,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
 
       def gotData(key: String, cas: Long) {
@@ -249,13 +245,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
             case CASExistsStatus =>
               result.tryComplete(Success(SuccessfulResult(key, None)))
             case CASSuccessStatus =>
-              // nothing
+            // nothing
             case failure =>
               result.tryComplete(Success(FailedResult(key, failure)))
           }
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
 
       def gotData(key: String, cas: Long) {
@@ -295,7 +292,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
     })
 
@@ -314,13 +312,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
             case CASNotFoundStatus =>
               result.tryComplete(Success(SuccessfulResult(key, None)))
             case CASSuccessStatus =>
-              // nothing
+            // nothing
             case failure =>
               result.tryComplete(Success(FailedResult(key, failure)))
           }
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
 
       def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]) {
@@ -361,7 +360,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage))
+            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+          )
       }
 
       def gotData(k: String, cas: Long) {
@@ -395,8 +395,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       case msg =>
         try {
           cancelable.cancel()
-        }
-        catch {
+        } catch {
           case NonFatal(_) =>
         }
 

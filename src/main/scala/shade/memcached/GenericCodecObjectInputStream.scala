@@ -1,6 +1,6 @@
 package shade.memcached
 
-import java.io.{InputStream, ObjectInputStream, ObjectStreamClass}
+import java.io.{ InputStream, ObjectInputStream, ObjectStreamClass }
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -14,7 +14,7 @@ import scala.util.control.NonFatal
  * Play's test/run modes.
  */
 class GenericCodecObjectInputStream(classTag: ClassTag[_], in: InputStream)
-  extends ObjectInputStream(in) {
+    extends ObjectInputStream(in) {
 
   private def classTagClassLoader =
     classTag.runtimeClass.getClassLoader

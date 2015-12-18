@@ -3,7 +3,6 @@ package shade.memcached
 import java.io._
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import scala.util.Try
 import scala.util.control.NonFatal
 import java.io.Serializable
 
