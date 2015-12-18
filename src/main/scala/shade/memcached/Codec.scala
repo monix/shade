@@ -1,6 +1,7 @@
 package shade.memcached
 
 import java.io._
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -94,9 +95,15 @@ trait BaseCodecs {
     def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
     def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
   }
+
+  implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
+    def serialize(value: Array[Byte]): Array[Byte] = value
+    def deserialize(data: Array[Byte]): Array[Byte] = data
+  }
 }
 
-trait MemcachedCodecs extends BaseCodecs {
+trait GenericCodec {
+
   private[this] class GenericCodec[S <: Serializable](classTag: ClassTag[S]) extends Codec[S] {
 
     def using[T <: Closeable, R](obj: T)(f: T => R): R =
@@ -127,7 +134,10 @@ trait MemcachedCodecs extends BaseCodecs {
 
   implicit def AnyRefBinaryCodec[S <: Serializable](implicit ev: ClassTag[S]): Codec[S] =
     new GenericCodec[S](ev)
+
 }
+
+trait MemcachedCodecs extends BaseCodecs with GenericCodec
 
 object MemcachedCodecs extends MemcachedCodecs
 
