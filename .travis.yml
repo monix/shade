@@ -8,6 +8,8 @@ jdk:
   - oraclejdk8
 services:
   - memcache
+script: "sbt clean coverage test"
+after_success: "sbt coveralls"
 cache:
   directories:
   - $HOME/.sbt/0.13
