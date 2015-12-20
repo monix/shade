@@ -1,15 +1,10 @@
 # Shade - Memcached Client for Scala
 
-[![Build Status](https://travis-ci.org/alexandru/shade.svg)](https://travis-ci.org/alexandru/shade) [![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/alexandru/shade.svg)](https://travis-ci.org/alexandru/shade)
+[![Coverage Status](https://coveralls.io/repos/alexandru/shade/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexandru/shade?branch=master)
+[![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-## MAINTAINERS WANTED (Dec 18, 2015)
-
-This project is badly maintained due to me not actively working 
-on any projects that need to integrate with Memcached. 
-I can give access to anybody that wants to keep it  up to date 
-or develop it further.
-
-## Overview 
+## Overview
 
 Shade is a Memcached client based on the de-facto Java library
 [SpyMemcached](https://code.google.com/p/spymemcached/).
@@ -17,18 +12,13 @@ Shade is a Memcached client based on the de-facto Java library
 The interface exposed is very Scala-ish, as you have a choice between
 making asynchronous calls, with results wrapped as Scala
 [Futures](http://docs.scala-lang.org/sips/pending/futures-promises.html),
-or blocking calls.
-
-The performance is stellar as it benefits from the
+or blocking calls. The performance is stellar as it benefits from the
 [optimizations that went into SpyMemcached](https://code.google.com/p/spymemcached/wiki/Optimizations)
 over the years. Shade also fixes some problems with SpyMemcached's
 architecture, choices that made sense in the context of Java, but
 don't make so much sense in the context of Scala (TODO: add details).
 
-The client is production quality, being in usage at Epigrams, Inc. for
-serving thousands of requests per second per instance of real
-traffic. It doesn't leak, it doesn't break, it works well under pressure.
-
+The client is production quality.
 Supported for Scala versions: 2.10.x and 2.11.x
 
 ## Release Notes
@@ -60,14 +50,14 @@ case class.
 import shade.memcached._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-val memcached = 
+val memcached =
   Memcached(Configuration("127.0.0.1:11211"))
 ```
 
 As you can see, you also need an
 [ExecutionContext](http://www.scala-lang.org/api/current/#scala.concurrent.ExecutionContext)
 passed explicitly. As an implementation detail, the execution context represents the
-thread-pool in which requests get processed. 
+thread-pool in which requests get processed.
 
 ### Simple non-blocking requests
 
@@ -130,7 +120,7 @@ values safely, like incrementing a counter. Memcached supports
 atomic operations and so does this client.
 
 ```scala
-val op: Future[Boolean] = 
+val op: Future[Boolean] =
   memcached.compareAndSet("username", Some("Alex"), "Amalia", 1.minute)
 ```
 
@@ -140,7 +130,7 @@ client also provides these helpers:
 
 ```scala
 def incrementCounter: Future[Int] =
-  memcached.transformAndGet[Int]("counter", 1.minute) { 
+  memcached.transformAndGet[Int]("counter", 1.minute) {
     case Some(existing) => existing + 1
     case None => 1
   }
@@ -151,7 +141,7 @@ value to be returned, do this:
 
 ```scala
 def incrementCounter: Future[Option[Int]] =
-  memcached.getAndTransform[Int]("counter", 1.minute) { 
+  memcached.getAndTransform[Int]("counter", 1.minute) {
     case Some(existing) => existing + 1
     case None => 1
   }
@@ -202,13 +192,13 @@ case class User(id: Int, name: String, age: Int)
 
 trait HelloController extends Controller with MemcachedCodecs {
    def memcached: Memcached // to be injected
-   
+
    // a Play 2.2 standard controller action
    def userInfo(id: Int) = Action.async {    
      for (user <-  memcached.get[User]("user-" + id)) yield
        Ok(views.showUserDetails(user))
    }
-   
+
    // ...
 }
 ```
@@ -221,7 +211,7 @@ can always implement your own `Codec[T]`, like:
 implicit object UserCodec extends Codec[User] {
   def serialize(user: User): Array[Byte] =
     s"${user.id}|${user.name}|${user.age}".getBytes("utf-8")
-    
+
   def deserialize(data: Array[Byte]): User = {
     val str = new String(data, "utf-8")
     val Array(id, name, age) = str.split("|")
@@ -229,5 +219,3 @@ implicit object UserCodec extends Codec[User] {
   }
 }
 ```
-
-
