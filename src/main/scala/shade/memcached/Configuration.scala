@@ -24,7 +24,7 @@ import net.spy.memcached.ops.OperationQueueFactory
  * @param operationTimeout  is the default operation timeout; When the limit is reached, the
  *                          Future responses finish with Failure(TimeoutException)
  *
- * @param shouldOptimize    If true, low-level optimization is in effect.
+ * @param shouldOptimize    If true, optimization will collapse multiple sequential get ops.
  *
  * @param opQueueFactory    can be used to customize the operations queue,
  *                          i.e. the queue of operations waiting to be processed by SpyMemcached.
