@@ -24,6 +24,8 @@ import net.spy.memcached.ops.OperationQueueFactory
  * @param operationTimeout  is the default operation timeout; When the limit is reached, the
  *                          Future responses finish with Failure(TimeoutException)
  *
+ * @param shouldOptimize    If true, optimization will collapse multiple sequential get ops.
+ *
  * @param opQueueFactory    can be used to customize the operations queue,
  *                          i.e. the queue of operations waiting to be processed by SpyMemcached.
  *                          If `None`, the default SpyMemcached implementation (a bounded ArrayBlockingQueue) is used.
@@ -43,6 +45,7 @@ case class Configuration(
   protocol: Protocol.Value = Protocol.Binary,
   failureMode: FailureMode.Value = FailureMode.Retry,
   operationTimeout: FiniteDuration = 1.second,
+  shouldOptimize: Boolean = false,
   opQueueFactory: Option[OperationQueueFactory] = None,
   writeQueueFactory: Option[OperationQueueFactory] = None,
   readQueueFactory: Option[OperationQueueFactory] = None

@@ -278,6 +278,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
         .setOpQueueFactory(config.opQueueFactory.orNull)
         .setReadOpQueueFactory(config.readQueueFactory.orNull)
         .setWriteOpQueueFactory(config.writeQueueFactory.orNull)
+        .setShouldOptimize(config.shouldOptimize)
 
       val withTimeout = config.operationTimeout match {
         case duration: FiniteDuration =>

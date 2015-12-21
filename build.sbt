@@ -59,7 +59,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "net.spy" % "spymemcached" % "2.11.7",
+  "net.spy" % "spymemcached" % "2.12.0",
   "org.slf4j" % "slf4j-api" % "1.7.13",
   "org.monifu" %% "monifu-core" % "1.0",
   "ch.qos.logback" % "logback-classic" % "1.1.3" % Test,
