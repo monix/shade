@@ -10,6 +10,5 @@ case class Session(
   userIP: Option[String] = None,
   locationLat: Option[Float] = None,
   locationLon: Option[Float] = None,
-  countryCode: Option[String] = None
-)
+  countryCode: Option[String] = None)
 

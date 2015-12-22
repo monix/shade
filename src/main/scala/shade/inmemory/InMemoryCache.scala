@@ -259,14 +259,12 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
   private[this] case class CacheValue(
     value: Any,
-    expiresAt: Long
-  )
+    expiresAt: Long)
 
   private[this] case class CacheState(
     values: Map[String, CacheValue] = Map.empty,
     firstExpiry: Long = 0,
-    maintenancePromise: Promise[Int] = Promise[Int]()
-  )
+    maintenancePromise: Promise[Int] = Promise[Int]())
 
   private[this] val stateRef = AtomicAny(CacheState())
 }

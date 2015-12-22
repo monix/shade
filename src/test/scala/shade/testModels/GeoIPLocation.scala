@@ -9,5 +9,4 @@ case class GeoIPLocation(
   areaCode: Option[Int],
   postalCode: Option[String],
   region: Option[String],
-  dmaCode: Option[Int]
-)
+  dmaCode: Option[Int])

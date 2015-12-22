@@ -48,8 +48,7 @@ case class Configuration(
   shouldOptimize: Boolean = false,
   opQueueFactory: Option[OperationQueueFactory] = None,
   writeQueueFactory: Option[OperationQueueFactory] = None,
-  readQueueFactory: Option[OperationQueueFactory] = None
-)
+  readQueueFactory: Option[OperationQueueFactory] = None)
 
 object Protocol extends Enumeration {
   type Type = Value
@@ -62,5 +61,4 @@ object FailureMode extends Enumeration {
 
 case class AuthConfiguration(
   username: String,
-  password: String
-)
+  password: String)
