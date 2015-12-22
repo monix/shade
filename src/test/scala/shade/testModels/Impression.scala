@@ -6,5 +6,4 @@ case class Impression(
   servedOffers: Seq[Offer] = Seq.empty,
   requestCount: Int = 0,
   alreadyServed: Boolean = false,
-  clientVersion: Option[String] = None
-)
+  clientVersion: Option[String] = None)

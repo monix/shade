@@ -5,5 +5,4 @@ case class UserInfo(
   forwardedFor: String,
   via: String,
   agent: String,
-  geoip: Option[GeoIPLocation]
-)
+  geoip: Option[GeoIPLocation])
