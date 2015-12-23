@@ -31,7 +31,7 @@ case class Offer(
   }
 
   def isExpired = {
-    if (!liveDeal.expires.isDefined)
+    if (liveDeal.expires.isEmpty)
       false
     else if (liveDeal.expires.get > System.currentTimeMillis() / 1000)
       false

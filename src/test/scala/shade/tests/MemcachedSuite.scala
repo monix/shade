@@ -1,13 +1,15 @@
 package shade.tests
 
+import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
+
 import org.scalatest.FunSuite
-import scala.concurrent.ExecutionContext.Implicits.global
-import shade.testModels.{ ContentPiece, Impression }
-import java.io.{ ObjectOutputStream, ByteArrayOutputStream }
-import shade.memcached.FailureMode
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import shade.TimeoutException
+import shade.memcached.FailureMode
+import shade.testModels.{ ContentPiece, Impression }
+
+import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
   implicit val timeout = 5.second

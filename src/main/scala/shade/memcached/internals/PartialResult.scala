@@ -1,8 +1,9 @@
 package shade.memcached.internals
 
-import util.{ Success, Try }
-import concurrent.{ Promise, Future }
 import monifu.concurrent.atomic.AtomicAny
+
+import scala.concurrent.{ Future, Promise }
+import scala.util.{ Success, Try }
 
 sealed trait PartialResult[+T]
 case class FinishedResult[T](result: Try[Result[T]]) extends PartialResult[T]
