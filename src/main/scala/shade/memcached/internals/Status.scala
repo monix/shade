@@ -1,6 +1,6 @@
 package shade.memcached.internals
 
-trait Status
+sealed trait Status
 case object TimedOutStatus extends Status
 case object CancelledStatus extends Status
 case object CASExistsStatus extends Status
