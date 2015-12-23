@@ -219,7 +219,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       case (oldValue, newValue) => oldValue
     }
 
-  override def close() {
+  override def close(): Unit = {
     instance.shutdown(3, TimeUnit.SECONDS)
   }
 

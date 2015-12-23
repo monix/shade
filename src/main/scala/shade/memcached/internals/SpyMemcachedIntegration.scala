@@ -62,7 +62,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     rv
   }
 
-  override def connectionLost(sa: SocketAddress) {
+  override def connectionLost(sa: SocketAddress): Unit = {
     // Don't care?
   }
 
@@ -73,7 +73,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
    * @param reconnectCount the number of attempts before the connection was
    *                       established
    */
-  override def connectionEstablished(sa: SocketAddress, reconnectCount: Int) {
+  override def connectionEstablished(sa: SocketAddress, reconnectCount: Int): Unit = {
     for (authDescriptor <- this.authDescriptor) {
       if (authDescriptor.authThresholdReached)
         this.shutdown()
@@ -135,7 +135,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   /**
    * Shut down immediately.
    */
-  def shutdown() {
+  def shutdown(): Boolean = {
     shutdown(-1, TimeUnit.SECONDS)
   }
 
