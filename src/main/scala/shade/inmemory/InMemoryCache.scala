@@ -31,7 +31,7 @@ trait InMemoryCache extends java.io.Closeable {
    */
   def maintenance: Future[Int]
 
-  def close(): Unit
+  override def close(): Unit
 }
 
 object InMemoryCache {
@@ -42,7 +42,7 @@ object InMemoryCache {
 private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) extends InMemoryCache {
   private[this] val scheduler = Scheduler(ec)
 
-  def get[T](key: String): Option[T] = {
+  override def get[T](key: String): Option[T] = {
     val currentState = stateRef.get
 
     currentState.values.get(key) match {
@@ -53,14 +53,14 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     }
   }
 
-  def getOrElse[T](key: String, default: => T): T =
+  override def getOrElse[T](key: String, default: => T): T =
     get[T](key) match {
       case Some(value) => value
       case None => default
     }
 
   @tailrec
-  def add[T](key: String, value: T, expiry: Duration = Duration.Inf): Boolean = {
+  override def add[T](key: String, value: T, expiry: Duration = Duration.Inf): Boolean = {
     val ts = getExpiryTS(expiry)
     val currentTS = System.currentTimeMillis()
     val currentState = stateRef.get
@@ -86,7 +86,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     }
   }
 
-  def set[T](key: String, value: T, expiry: Duration = Duration.Inf) = {
+  override def set[T](key: String, value: T, expiry: Duration = Duration.Inf) = {
     val ts = getExpiryTS(expiry)
 
     stateRef.transform { current =>
@@ -97,7 +97,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   }
 
   @tailrec
-  def delete(key: String): Boolean = {
+  override def delete(key: String): Boolean = {
     val currentState = stateRef.get
 
     currentState.values.get(key) match {
@@ -115,7 +115,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   }
 
   @tailrec
-  def cachedFuture[T](key: String, expiry: Duration = Duration.Inf)(cb: => Future[T]): Future[T] = {
+  override def cachedFuture[T](key: String, expiry: Duration = Duration.Inf)(cb: => Future[T]): Future[T] = {
     val currentState = stateRef.get
 
     val currentValue = currentState.values.get(key) match {
@@ -145,7 +145,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     }
   }
 
-  def compareAndSet[T](key: String, expected: Option[T], update: T, expiry: Duration): Boolean = {
+  override def compareAndSet[T](key: String, expected: Option[T], update: T, expiry: Duration): Boolean = {
     val current = stateRef.get
     val ts = getExpiryTS(expiry)
 
@@ -166,7 +166,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     }
   }
 
-  def transformAndGet[T](key: String, expiry: Duration)(cb: (Option[T]) => T): T =
+  override def transformAndGet[T](key: String, expiry: Duration)(cb: (Option[T]) => T): T =
     stateRef.transformAndExtract { current =>
       val ts = getExpiryTS(expiry)
 
@@ -183,7 +183,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
       (newValue, current.copy(values, firstExpiry))
     }
 
-  def getAndTransform[T](key: String, expiry: Duration)(cb: (Option[T]) => T): Option[T] =
+  override def getAndTransform[T](key: String, expiry: Duration)(cb: (Option[T]) => T): Option[T] =
     stateRef.transformAndExtract { current =>
       val ts = getExpiryTS(expiry)
 
@@ -226,22 +226,22 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     promise.trySuccess(difference)
   }
 
-  def size: Int = {
+  override def size: Int = {
     val ts = System.currentTimeMillis()
     stateRef.get.values.count(_._2.expiresAt <= ts)
   }
 
-  def realSize: Int = stateRef.get.values.size
+  override def realSize: Int = stateRef.get.values.size
 
   /**
    * Future that completes when a maintenance window has run,
    * giving the number of items that were removed.
    * @return
    */
-  def maintenance: Future[Int] =
+  override def maintenance: Future[Int] =
     stateRef.get.maintenancePromise.future
 
-  def close(): Unit = {
+  override def close(): Unit = {
     Try(task.cancel())
     val state = stateRef.getAndSet(CacheState())
     state.maintenancePromise.trySuccess(0)
