@@ -1,16 +1,16 @@
 package shade.memcached
 
-import internals._
-import concurrent.{ Future, ExecutionContext }
-import net.spy.memcached.{ FailureMode => SpyFailureMode, _ }
-import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
-import net.spy.memcached.auth.{ PlainCallbackHandler, AuthDescriptor }
-import concurrent.duration._
 import java.util.concurrent.TimeUnit
-import shade.memcached.internals.SuccessfulResult
-import shade.memcached.internals.FailedResult
-import shade.{ UnhandledStatusException, CancelledException, TimeoutException }
+
 import monifu.concurrent.Scheduler
+import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
+import net.spy.memcached.auth.{ AuthDescriptor, PlainCallbackHandler }
+import net.spy.memcached.{ FailureMode => SpyFailureMode, _ }
+import shade.memcached.internals.{ FailedResult, SuccessfulResult, _ }
+import shade.{ CancelledException, TimeoutException, UnhandledStatusException }
+
+import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Memcached client implementation based on SpyMemcached.

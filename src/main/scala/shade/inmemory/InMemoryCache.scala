@@ -1,10 +1,11 @@
 package shade.inmemory
 
-import concurrent.duration._
-import monifu.concurrent.atomic.AtomicAny
-import scala.concurrent.{ Promise, ExecutionContext, Future }
 import monifu.concurrent.Scheduler
+import monifu.concurrent.atomic.AtomicAny
+
 import scala.annotation.tailrec
+import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.Try
 
 trait InMemoryCache extends java.io.Closeable {

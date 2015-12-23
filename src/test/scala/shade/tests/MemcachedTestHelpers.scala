@@ -1,9 +1,9 @@
 package shade.tests
 
 import shade.memcached._
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import shade.memcached.Configuration
 
 trait MemcachedTestHelpers extends MemcachedCodecs {
   val defaultConfig = Configuration(

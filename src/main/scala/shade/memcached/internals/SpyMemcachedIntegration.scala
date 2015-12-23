@@ -1,20 +1,22 @@
 package shade.memcached.internals
 
-import java.net.{ SocketAddress, InetSocketAddress }
+import java.io.IOException
+import java.net.{ InetSocketAddress, SocketAddress }
+import java.util.concurrent.{ CountDownLatch, TimeUnit }
+
+import monifu.concurrent.Scheduler
+import monifu.concurrent.atomic.Atomic
+import net.spy.memcached._
+import net.spy.memcached.auth.AuthThreadMonitor
 import net.spy.memcached.compat.SpyObject
 import net.spy.memcached.ops._
-import net.spy.memcached._
-import collection.JavaConverters._
-import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.concurrent.{ ExecutionContext, Promise, Future }
-import scala.util.{ Try, Failure, Success }
-import scala.util.control.NonFatal
-import net.spy.memcached.auth.AuthThreadMonitor
-import java.util.concurrent.{ CountDownLatch, TimeUnit }
-import java.io.IOException
 import shade.UnhandledStatusException
-import monifu.concurrent.atomic.Atomic
-import monifu.concurrent.Scheduler
+
+import scala.collection.JavaConverters._
+import scala.concurrent.duration.{ Duration, FiniteDuration }
+import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.util.control.NonFatal
+import scala.util.{ Failure, Success, Try }
 
 /**
  * Hooking in the SpyMemcached Internals.
