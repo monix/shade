@@ -128,7 +128,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
   private def findNode(sa: SocketAddress): MemcachedNode = {
     val node = mconn.getLocator.getAll.asScala.find(_.getSocketAddress == sa)
-    assert(node.isDefined, "Couldn't find node connected to " + sa)
+    assert(node.isDefined, s"Couldn't find node connected to $sa")
     node.get
   }
 
@@ -146,19 +146,19 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       false
     } else {
       val baseName: String = mconn.getName
-      mconn.setName(baseName + " - SHUTTING DOWN")
+      mconn.setName(s"$baseName - SHUTTING DOWN")
 
       try {
         if (timeout > 0) {
-          mconn.setName(baseName + " - SHUTTING DOWN (waiting)")
+          mconn.setName(s"$baseName - SHUTTING DOWN (waiting)")
           waitForQueues(timeout, unit)
         } else
           true
       } finally {
         try {
-          mconn.setName(baseName + " - SHUTTING DOWN (telling client)")
+          mconn.setName(s"$baseName - SHUTTING DOWN (telling client)")
           mconn.shutdown()
-          mconn.setName(baseName + " - SHUTTING DOWN (informed client)")
+          mconn.setName(s"$baseName - SHUTTING DOWN (informed client)")
         } catch {
           case e: IOException =>
             getLogger.warn("exception while shutting down": Any, e: Throwable)
@@ -185,7 +185,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
 
@@ -219,7 +219,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
 
@@ -253,7 +253,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
           }
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
 
@@ -294,7 +294,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
     })
@@ -320,13 +320,13 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
           }
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
 
       def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]) {
         assert(key == receivedKey, "Wrong key returned")
-        assert(cas > 0, "CAS was less than zero:  " + cas)
+        assert(cas > 0, s"CAS was less than zero:  $cas")
 
         result.tryComplete(Try {
           SuccessfulResult(key, Option(data).map(d => (d, cas)))
@@ -362,7 +362,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
         else
           throw new UnhandledStatusException(
-            "%s(%s)".format(opStatus.getClass, opStatus.getMessage)
+            s"${opStatus.getClass}(${opStatus.getMessage})"
           )
       }
 
