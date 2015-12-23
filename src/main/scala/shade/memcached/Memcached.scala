@@ -96,7 +96,7 @@ trait Memcached extends java.io.Closeable {
   /**
    * Shuts down the cache instance, performs any additional cleanups necessary.
    */
-  def close()
+  def close(): Unit
 }
 
 object Memcached {
