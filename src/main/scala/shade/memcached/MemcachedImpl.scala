@@ -31,7 +31,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  override def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     value match {
       case null =>
         Future.successful(false)
@@ -51,7 +51,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
+  override def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
     value match {
       case null =>
         Future.successful(())
@@ -69,7 +69,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def delete(key: String): Future[Boolean] =
+  override def delete(key: String): Future[Boolean] =
     instance.realAsyncDelete(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, result) =>
         result
@@ -82,7 +82,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return Some(value) in case the key is available, or None otherwise (doesn't throw exception on key missing)
    */
-  def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
+  override def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
     instance.realAsyncGet(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, option) =>
         option.map(codec.deserialize)
@@ -103,7 +103,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    * @param exp can be Duration.Inf (infinite) for not setting an expiration
    * @return either true (in case the compare-and-set succeeded) or false otherwise
    */
-  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  override def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     expecting match {
       case None =>
         add[T](key, newValue, exp)
@@ -194,7 +194,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return the new value
    */
-  def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] =
+  override def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] =
     genericTransform(key, exp, cb) {
       case (oldValue, newValue) => newValue
     }
@@ -214,12 +214,12 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return the old value
    */
-  def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[Option[T]] =
+  override def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[Option[T]] =
     genericTransform(key, exp, cb) {
       case (oldValue, newValue) => oldValue
     }
 
-  def close() {
+  override def close(): Unit = {
     instance.shutdown(3, TimeUnit.SECONDS)
   }
 
@@ -230,7 +230,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       throw new CancelledException(withoutPrefix(k))
     case FailedResult(k, unhandled) =>
       throw new UnhandledStatusException(
-        "For key %s - %s".format(withoutPrefix(k), unhandled.getClass.getName)
+        s"For key ${withoutPrefix(k)} - ${unhandled.getClass.getName}"
       )
   }
 
@@ -307,4 +307,3 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
     new SpyMemcachedIntegration(conn.build(), addresses, Scheduler(context))
   }
 }
-

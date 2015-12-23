@@ -19,7 +19,7 @@ object Codec extends BaseCodecs
 
 trait BaseCodecs {
   implicit object IntBinaryCodec extends Codec[Int] {
-    def serialize(value: Int): Array[Byte] =
+    override def serialize(value: Int): Array[Byte] =
       Array(
         (value >>> 24).asInstanceOf[Byte],
         (value >>> 16).asInstanceOf[Byte],
@@ -27,7 +27,7 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def deserialize(data: Array[Byte]): Int =
+    override def deserialize(data: Array[Byte]): Int =
       (data(0).asInstanceOf[Int] & 255) << 24 |
         (data(1).asInstanceOf[Int] & 255) << 16 |
         (data(2).asInstanceOf[Int] & 255) << 8 |
@@ -35,7 +35,7 @@ trait BaseCodecs {
   }
 
   implicit object LongBinaryCodec extends Codec[Long] {
-    def serialize(value: Long): Array[Byte] =
+    override def serialize(value: Long): Array[Byte] =
       Array(
         (value >>> 56).asInstanceOf[Byte],
         (value >>> 48).asInstanceOf[Byte],
@@ -47,7 +47,7 @@ trait BaseCodecs {
         value.asInstanceOf[Byte]
       )
 
-    def deserialize(data: Array[Byte]): Long =
+    override def deserialize(data: Array[Byte]): Long =
       (data(0).asInstanceOf[Long] & 255) << 56 |
         (data(1).asInstanceOf[Long] & 255) << 48 |
         (data(2).asInstanceOf[Long] & 255) << 40 |
@@ -59,45 +59,45 @@ trait BaseCodecs {
   }
 
   implicit object BooleanBinaryCodec extends Codec[Boolean] {
-    def serialize(value: Boolean): Array[Byte] =
+    override def serialize(value: Boolean): Array[Byte] =
       Array((if (value) 1 else 0).asInstanceOf[Byte])
 
-    def deserialize(data: Array[Byte]): Boolean =
+    override def deserialize(data: Array[Byte]): Boolean =
       data.isDefinedAt(0) && data(0) == 1
   }
 
   implicit object CharBinaryCodec extends Codec[Char] {
-    def serialize(value: Char): Array[Byte] = Array(
+    override def serialize(value: Char): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
     )
 
-    def deserialize(data: Array[Byte]): Char =
+    override def deserialize(data: Array[Byte]): Char =
       ((data(0).asInstanceOf[Int] & 255) << 8 |
         data(1).asInstanceOf[Int] & 255)
         .asInstanceOf[Char]
   }
 
   implicit object ShortBinaryCodec extends Codec[Short] {
-    def serialize(value: Short): Array[Byte] = Array(
+    override def serialize(value: Short): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
       value.asInstanceOf[Byte]
     )
 
-    def deserialize(data: Array[Byte]): Short =
+    override def deserialize(data: Array[Byte]): Short =
       ((data(0).asInstanceOf[Short] & 255) << 8 |
         data(1).asInstanceOf[Short] & 255)
         .asInstanceOf[Short]
   }
 
   implicit object StringBinaryCodec extends Codec[String] {
-    def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
-    def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
+    override def serialize(value: String): Array[Byte] = value.getBytes("UTF-8")
+    override def deserialize(data: Array[Byte]): String = new String(data, "UTF-8")
   }
 
   implicit object ArrayByteBinaryCodec extends Codec[Array[Byte]] {
-    def serialize(value: Array[Byte]): Array[Byte] = value
-    def deserialize(data: Array[Byte]): Array[Byte] = data
+    override def serialize(value: Array[Byte]): Array[Byte] = value
+    override def deserialize(data: Array[Byte]): Array[Byte] = data
   }
 }
 
@@ -113,7 +113,7 @@ trait GenericCodec {
           case NonFatal(_) => // does nothing
         }
 
-    def serialize(value: S): Array[Byte] =
+    override def serialize(value: S): Array[Byte] =
       using (new ByteArrayOutputStream()) { buf =>
         using (new ObjectOutputStream(buf)) { out =>
           out.writeObject(value)
@@ -122,7 +122,7 @@ trait GenericCodec {
         }
       }
 
-    def deserialize(data: Array[Byte]): S =
+    override def deserialize(data: Array[Byte]): S =
       using (new ByteArrayInputStream(data)) { buf =>
         val in = new GenericCodecObjectInputStream(classTag, buf)
         using (in) { inp =>
