@@ -22,8 +22,7 @@ case class Offer(
     isDynamic: Boolean,
     isGlobal: Boolean,
 
-    countries: Seq[String]
-) {
+    countries: Seq[String]) {
 
   def uniqueToken = {
     val token = id.toString + "-" + advertiser.serviceID +
@@ -45,13 +44,11 @@ case class LiveDealInfo(
   uid: Option[String],
   expires: Option[Int],
   refreshToken: Option[Int],
-  searchKeyword: Option[String]
-)
+  searchKeyword: Option[String])
 
 case class OfferCreative(
   title: String,
   description: String,
   merchantName: Option[String],
   merchantPhone: Option[String],
-  htmlDescription: Option[String]
-)
+  htmlDescription: Option[String])

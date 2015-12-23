@@ -63,8 +63,7 @@ object ContentPiece {
     photo: String,
     title: Option[String],
     source: ContentSource,
-    tags: Vector[String]
-  ) extends ContentPiece
+    tags: Vector[String]) extends ContentPiece
 
   @SerialVersionUID(9785234918758324L)
   case class Title(
@@ -73,8 +72,7 @@ object ContentPiece {
     creator: String,
     title: String,
     source: ContentSource,
-    tags: Vector[String]
-  ) extends ContentPiece
+    tags: Vector[String]) extends ContentPiece
 
   @SerialVersionUID(9348538729520853L)
   case class Article(
@@ -86,8 +84,7 @@ object ContentPiece {
     excerptHtml: String,
     contentHtml: Option[String],
     source: ContentSource,
-    tags: Vector[String]
-  ) extends ContentPiece
+    tags: Vector[String]) extends ContentPiece
 }
 
 sealed trait ContentSource extends Serializable {
