@@ -1,10 +1,11 @@
 package shade.tests
 
 import org.scalatest.FunSuite
-import concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ Future, Await }
 import shade.inmemory.InMemoryCache
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class InMemoryCacheVer2Suite extends FunSuite {
   test("get(), set()") {

@@ -1,10 +1,10 @@
 package shade.memcached
 
 import java.io._
+
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import java.io.Serializable
 
 /**
  * Represents a type class that needs to be implemented
