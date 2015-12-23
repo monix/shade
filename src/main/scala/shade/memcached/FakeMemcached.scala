@@ -1,8 +1,9 @@
 package shade.memcached
 
+import shade.inmemory.InMemoryCache
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future }
-import shade.inmemory.InMemoryCache
 
 class FakeMemcached(context: ExecutionContext) extends Memcached {
   private[this] implicit val ec = context

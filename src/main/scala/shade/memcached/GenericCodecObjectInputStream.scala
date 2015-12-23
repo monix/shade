@@ -1,6 +1,7 @@
 package shade.memcached
 
 import java.io.{ InputStream, ObjectInputStream, ObjectStreamClass }
+
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 

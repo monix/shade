@@ -1,7 +1,8 @@
 package shade.memcached
 
-import concurrent.duration._
 import net.spy.memcached.ops.OperationQueueFactory
+
+import scala.concurrent.duration._
 
 /**
  * Represents the Memcached connection configuration.
