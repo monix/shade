@@ -48,10 +48,10 @@ class MutablePartialResultSuite
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 
-  test("#tryCompleteWith on a MutablePartialResult that has already been comppleted") {
+  test("#tryCompleteWith on a MutablePartialResult that has already been completed") {
     val pResult = new MutablePartialResult[Boolean]
-    pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false)))
-    assert(!pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false))))
+    assert(pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false))))
+    assert(!pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", true))))
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 
