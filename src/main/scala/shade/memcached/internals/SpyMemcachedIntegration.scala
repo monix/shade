@@ -135,7 +135,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   /**
    * Shut down immediately.
    */
-  def shutdown(): Boolean = {
+  def shutdown(): Unit = {
     shutdown(-1, TimeUnit.SECONDS)
   }
 
