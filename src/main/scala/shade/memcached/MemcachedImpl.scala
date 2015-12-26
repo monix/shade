@@ -219,7 +219,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       case (oldValue, newValue) => oldValue
     }
 
-  def close() {
+  def close(): Unit = {
     instance.shutdown(3, TimeUnit.SECONDS)
   }
 
@@ -230,7 +230,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       throw new CancelledException(withoutPrefix(k))
     case FailedResult(k, unhandled) =>
       throw new UnhandledStatusException(
-        "For key %s - %s".format(withoutPrefix(k), unhandled.getClass.getName)
+        s"For key ${withoutPrefix(k)} - ${unhandled.getClass.getName}"
       )
   }
 

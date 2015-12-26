@@ -86,7 +86,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     }
   }
 
-  def set[T](key: String, value: T, expiry: Duration = Duration.Inf) = {
+  def set[T](key: String, value: T, expiry: Duration = Duration.Inf): Unit = {
     val ts = getExpiryTS(expiry)
 
     stateRef.transform { current =>
@@ -200,7 +200,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
       (currentValue, current.copy(values, firstExpiry))
     }
 
-  def clean() = {
+  def clean(): Boolean = {
     val (promise, difference) = stateRef.transformAndExtract { currentState =>
       val currentTS = System.currentTimeMillis()
 
@@ -247,7 +247,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
     state.maintenancePromise.trySuccess(0)
   }
 
-  protected def getExpiryTS(expiry: Duration) =
+  protected def getExpiryTS(expiry: Duration): Long =
     if (expiry.isFinite())
       System.currentTimeMillis() + expiry.toMillis
     else

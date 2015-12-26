@@ -51,7 +51,7 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
       update.map(x => codec.deserialize(x.toArray))
     }
 
-  def close() {
+  def close(): Unit = {
     cache.close()
   }
 
