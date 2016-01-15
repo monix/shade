@@ -1,6 +1,6 @@
 # Shade - Memcached Client for Scala
 
-[![Build Status](https://travis-ci.org/alexandru/shade.svg)](https://travis-ci.org/alexandru/shade)
+[![Build Status](https://travis-ci.org/alexandru/shade.svg?branch=master)](https://travis-ci.org/alexandru/shade)
 [![Coverage Status](https://coveralls.io/repos/alexandru/shade/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexandru/shade?branch=master)
 [![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -194,7 +194,7 @@ trait HelloController extends Controller with MemcachedCodecs {
    def memcached: Memcached // to be injected
 
    // a Play 2.2 standard controller action
-   def userInfo(id: Int) = Action.async {    
+   def userInfo(id: Int) = Action.async {
      for (user <-  memcached.get[User]("user-" + id)) yield
        Ok(views.showUserDetails(user))
    }
