@@ -446,7 +446,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       else
         System.currentTimeMillis() / 1000 + seconds
     case _ =>
-      // infinite duration (set to 365 days)
-      System.currentTimeMillis() / 1000 + 31536000 // 60 * 60 * 24 * 365 -> 365 days in seconds
+      // infinite duration (set to 0)
+      0
   }
 }
