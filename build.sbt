@@ -1,6 +1,6 @@
 name := "shade"
 
-version := "1.7.1"
+version := "1.7.2"
 
 organization := "com.bionicspirit"
 
