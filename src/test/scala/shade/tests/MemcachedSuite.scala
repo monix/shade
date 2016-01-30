@@ -313,12 +313,15 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("infinite-duration") {
     withCache("infinite-duration") { cache =>
       assert(cache.awaitGet[Value]("hello") === None)
+      try {
+        cache.awaitSet("hello", Value("world"), Duration.Inf)
+        assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
 
-      cache.awaitSet("hello", Value("world"), Duration.Inf)
-      assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
-
-      Thread.sleep(5000)
-      assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
+        Thread.sleep(5000)
+        assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
+      } finally {
+        cache.awaitDelete("hello")
+      }
     }
   }
 }
