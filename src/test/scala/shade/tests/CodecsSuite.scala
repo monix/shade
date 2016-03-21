@@ -22,6 +22,14 @@ class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenProp
     serdesCheck(IntBinaryCodec)
   }
 
+  test("DoubleBinaryCodec") {
+    serdesCheck(DoubleBinaryCodec)
+  }
+
+  test("FloatBinaryCodec") {
+    serdesCheck(FloatBinaryCodec)
+  }
+
   test("LongBinaryCodec") {
     serdesCheck(LongBinaryCodec)
   }
