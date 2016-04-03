@@ -2,6 +2,7 @@ package shade.memcached
 
 import java.io._
 
+import scala.annotation.implicitNotFound
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -10,6 +11,7 @@ import scala.util.control.NonFatal
  * Represents a type class that needs to be implemented
  * for serialization/deserialization to work.
  */
+@implicitNotFound("Could not find any Codec implementation for type ${T}. Please provide one or import shade.memcached.MemcachedCodecs._")
 trait Codec[T] {
   def serialize(value: T): Array[Byte]
   def deserialize(data: Array[Byte]): T
