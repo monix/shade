@@ -1,6 +1,7 @@
 package shade.memcached
 
 import net.spy.memcached.ops.OperationQueueFactory
+import net.spy.memcached.{ DefaultConnectionFactory, HashAlgorithm }
 
 import scala.concurrent.duration._
 
@@ -38,6 +39,8 @@ import scala.concurrent.duration._
  * @param writeQueueFactory can be used to customize the write queue,
  *                          i.e. the queue of operations waiting to be sent to Memcached by SpyMemcached.
  *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
+ *
+ * @param hashAlgorithm     the method for hashing a cache key for server selection
  */
 case class Configuration(
   addresses: String,
@@ -49,7 +52,8 @@ case class Configuration(
   shouldOptimize: Boolean = false,
   opQueueFactory: Option[OperationQueueFactory] = None,
   writeQueueFactory: Option[OperationQueueFactory] = None,
-  readQueueFactory: Option[OperationQueueFactory] = None)
+  readQueueFactory: Option[OperationQueueFactory] = None,
+  hashAlgorithm: HashAlgorithm = DefaultConnectionFactory.DEFAULT_HASH)
 
 object Protocol extends Enumeration {
   type Type = Value
