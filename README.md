@@ -36,7 +36,7 @@ These are the people maintaining this project that you can annoy:
 ## Usage From SBT
 
 ```scala
-dependencies += "com.bionicspirit" %% "shade" % "1.7.2"
+dependencies += "com.bionicspirit" %% "shade" % "1.7.3"
 ```
 
 ### Initializing the Memcached Client

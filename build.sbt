@@ -1,12 +1,12 @@
 name := "shade"
 
-version := "1.7.2"
+version := "1.7.3"
 
 organization := "com.bionicspirit"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.10.6", "2.11.7")
+crossScalaVersions := Seq("2.10.6", "2.11.8")
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
@@ -61,7 +61,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "net.spy" % "spymemcached" % "2.12.0",
   "org.slf4j" % "slf4j-api" % "1.7.13",
-  "org.monifu" %% "monifu-core" % "1.0",
+  "org.monifu" %% "monifu-core" % "1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.3" % Test,
   "org.scalatest" %% "scalatest" % "2.2.4" % Test,
   "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
