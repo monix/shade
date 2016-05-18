@@ -1,5 +1,6 @@
 package shade.memcached
 
+import shade.UnhandledStatusException
 import shade.inmemory.InMemoryCache
 
 import scala.concurrent.duration.Duration
@@ -50,6 +51,24 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
     }) map { update =>
       update.map(x => codec.deserialize(x.toArray))
     }
+
+  def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
+    def toLong(bytes: Seq[Byte]): Long = new String(bytes.toArray).toLong
+    Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
+      case Some(current) => (toLong(current) + 1).toString.getBytes
+      case None if default.isDefined => default.get.toString.getBytes
+      case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
+    }).map(toLong)
+  }
+
+  def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
+    def toLong(bytes: Seq[Byte]): Long = new String(bytes.toArray).toLong
+    Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
+      case Some(current) => math.max(0, toLong(current) - 1).toString.getBytes
+      case None if default.isDefined => default.get.toString.getBytes
+      case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
+    }).map(toLong)
+  }
 
   def close(): Unit = {
     cache.close()

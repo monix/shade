@@ -379,6 +379,38 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
+  def realAsyncMutate(key: String, by: Long, mutator: Mutator, default: Option[Long], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Long]] = {
+    val promise = Promise[Result[Long]]()
+    val result = new MutablePartialResult[Long]
+
+    val expiry = default match {
+      case Some(d) => expiryToSeconds(exp).toInt
+      case None => -1 // expiry of all 1-bits disables setting default in case of nonexistent key
+    }
+    val op: Operation = opFact.mutate(mutator, key, by, default.getOrElse(0L), expiry, new OperationCallback {
+      def receivedStatus(opStatus: OperationStatus) {
+        if (statusTranslation.isDefinedAt(opStatus))
+          statusTranslation(opStatus) match {
+            case CASSuccessStatus =>
+              result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong)))
+            case failure =>
+              result.tryComplete(Success(FailedResult(key, failure)))
+          }
+        else
+          throw new UnhandledStatusException(
+            s"${opStatus.getClass}(${opStatus.getMessage})"
+          )
+      }
+
+      def complete() {
+        result.completePromise(key, promise)
+      }
+    })
+
+    mconn.enqueueOperation(key, op)
+    prepareFuture(key, op, promise, timeout)
+  }
+
   protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[T]] = {
     val cancelable = scheduler.scheduleOnce(atMost) {
       promise.tryComplete {
@@ -436,6 +468,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         case CASResponse.OBSERVE_TIMEOUT =>
           CASObserveTimeout
       }
+    case x if x.isSuccess =>
+      CASSuccessStatus
   }
 
   protected final def expiryToSeconds(duration: Duration): Long = duration match {

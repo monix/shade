@@ -196,6 +196,41 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("increment-decrement") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitGet[Int]("hello") === None)
+
+      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      cache.awaitIncrement("hello", 1, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("124"))
+
+      cache.awaitDecrement("hello", 1, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
+  test("increment-default") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+
+      cache.awaitIncrement("hello", 1, Some(0), 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("0"))
+
+      cache.awaitIncrement("hello", 1, Some(0), 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("1"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
   test("big-instance-1") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
