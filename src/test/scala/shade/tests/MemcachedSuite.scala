@@ -313,6 +313,18 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("decrement-underflow") {
+    withCache("increment-underflow") { cache =>
+      assert(cache.awaitDecrement("hello", 1, Some(1), 1.minute) === 1)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("0"))
+    }
+  }
+
   test("vector-inherited-case-classes") {
     withCache("vector-inherited-case-classes") { cache =>
       val content = shade.testModels.contentSeq

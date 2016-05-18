@@ -260,6 +260,18 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("decrement-underflow") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitDecrement("hello", 1, Some(1), 1.minute) === 1)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("0"))
+    }
+  }
+
   test("big-instance-1") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
