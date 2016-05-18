@@ -268,6 +268,25 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("increment-decrement-delta") {
+    withCache("increment-decrement-delta") { cache =>
+      assert(cache.awaitGet[Int]("hello") === None)
+
+      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      cache.awaitIncrement("hello", 5, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("128"))
+
+      cache.awaitDecrement("hello", 5, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
   test("increment-default") {
     withCache("increment-default") { cache =>
       assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
@@ -281,6 +300,16 @@ class MemcachedSuite extends FunSuite with MemcachedTestHelpers {
       Thread.sleep(3000)
 
       assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
+  test("increment-overflow") {
+    withCache("increment-overflow") { cache =>
+      assert(cache.awaitIncrement("hello", 1, Some(Long.MaxValue), 1.minute) === Long.MaxValue)
+
+      assert(cache.awaitIncrement("hello", 1, None, 1.minute) === Long.MinValue)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("9223372036854775808"))
     }
   }
 

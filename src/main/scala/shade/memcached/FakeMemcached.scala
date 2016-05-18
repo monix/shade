@@ -53,21 +53,21 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
     }
 
   def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
-    def toLong(bytes: Seq[Byte]): Long = new String(bytes.toArray).toLong
+    def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
     Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => (toLong(current) + 1).toString.getBytes
+      case Some(current) => (toBigInt(current) + by).toString.getBytes
       case None if default.isDefined => default.get.toString.getBytes
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
-    }).map(toLong)
+    }).map(toBigInt).map(_.toLong)
   }
 
   def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
-    def toLong(bytes: Seq[Byte]): Long = new String(bytes.toArray).toLong
+    def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
     Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => math.max(0, toLong(current) - 1).toString.getBytes
+      case Some(current) => (toBigInt(current) - by).max(0).toString.getBytes
       case None if default.isDefined => default.get.toString.getBytes
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
-    }).map(toLong)
+    }).map(toBigInt).map(_.toLong)
   }
 
   def close(): Unit = {
