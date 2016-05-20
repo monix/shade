@@ -247,7 +247,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    */
   def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] =
     instance.realAsyncMutate(withPrefix(key), by, Mutator.incr, default, exp, config.operationTimeout) map {
-      case SuccessfulResult(givenKey, value) =>
+      case SuccessfulResult(_, value) =>
         value
       case failure: FailedResult =>
         throwExceptionOn(failure)
@@ -276,7 +276,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    */
   def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] =
     instance.realAsyncMutate(withPrefix(key), by, Mutator.decr, default, exp, config.operationTimeout) map {
-      case SuccessfulResult(givenKey, value) =>
+      case SuccessfulResult(_, value) =>
         value
       case failure: FailedResult =>
         throwExceptionOn(failure)
