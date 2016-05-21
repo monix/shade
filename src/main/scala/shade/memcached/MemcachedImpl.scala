@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import monifu.concurrent.Scheduler
 import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
 import net.spy.memcached.auth.{ AuthDescriptor, PlainCallbackHandler }
+import net.spy.memcached.ops.Mutator
 import net.spy.memcached.{ FailureMode => SpyFailureMode, _ }
 import shade.memcached.internals.{ FailedResult, SuccessfulResult, _ }
 import shade.{ CancelledException, TimeoutException, UnhandledStatusException }
@@ -222,6 +223,64 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
   def close(): Unit = {
     instance.shutdown(3, TimeUnit.SECONDS)
   }
+
+  /**
+   * Atomically increments the given key by a non-negative integer amount
+   * and returns the new value.
+   *
+   * The value is stored as the ASCII decimal representation of a 64-bit
+   * unsigned integer.
+   *
+   * If the key does not exist and a default is provided, sets the value of the
+   * key to the provided default and expiry time.
+   *
+   * If the key does not exist and no default is provided, or if the key exists
+   * with a value that does not conform to the expected representation, the
+   * operation will fail.
+   *
+   * If the operation succeeds, it returns the new value of the key.
+   *
+   * Note that the default value is always treated as None when using the text
+   * protocol.
+   *
+   * The expiry time can be Duration.Inf (infinite duration).
+   */
+  def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] =
+    instance.realAsyncMutate(withPrefix(key), by, Mutator.incr, default, exp, config.operationTimeout) map {
+      case SuccessfulResult(_, value) =>
+        value
+      case failure: FailedResult =>
+        throwExceptionOn(failure)
+    }
+
+  /**
+   * Atomically decrements the given key by a non-negative integer amount
+   * and returns the new value.
+   *
+   * The value is stored as the ASCII decimal representation of a 64-bit
+   * unsigned integer.
+   *
+   * If the key does not exist and a default is provided, sets the value of the
+   * key to the provided default and expiry time.
+   *
+   * If the key does not exist and no default is provided, or if the key exists
+   * with a value that does not conform to the expected representation, the
+   * operation will fail.
+   *
+   * If the operation succeeds, it returns the new value of the key.
+   *
+   * Note that the default value is always treated as None when using the text
+   * protocol.
+   *
+   * The expiry time can be Duration.Inf (infinite duration).
+   */
+  def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] =
+    instance.realAsyncMutate(withPrefix(key), by, Mutator.decr, default, exp, config.operationTimeout) map {
+      case SuccessfulResult(_, value) =>
+        value
+      case failure: FailedResult =>
+        throwExceptionOn(failure)
+    }
 
   private[this] def throwExceptionOn(failure: FailedResult) = failure match {
     case FailedResult(k, TimedOutStatus) =>

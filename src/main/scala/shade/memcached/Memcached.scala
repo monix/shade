@@ -94,6 +94,58 @@ trait Memcached extends java.io.Closeable {
   def getAndTransform[T](key: String, exp: Duration)(cb: Option[T] => T)(implicit codec: Codec[T]): Future[Option[T]]
 
   /**
+   * Atomically increments the given key by a non-negative integer amount
+   * and returns the new value.
+   *
+   * The value is stored as the ASCII decimal representation of a 64-bit
+   * unsigned integer.
+   *
+   * If the key does not exist and a default is provided, sets the value of the
+   * key to the provided default and expiry time.
+   *
+   * If the key does not exist and no default is provided, or if the key exists
+   * with a value that does not conform to the expected representation, the
+   * operation will fail.
+   *
+   * If the operation succeeds, it returns the new value of the key.
+   *
+   * Note that the default value is always treated as None when using the text
+   * protocol.
+   *
+   * The expiry time can be Duration.Inf (infinite duration).
+   */
+  def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long]
+
+  def awaitIncrement(key: String, by: Long, default: Option[Long], exp: Duration): Long =
+    Await.result(increment(key, by, default, exp), Duration.Inf)
+
+  /**
+   * Atomically decrements the given key by a non-negative integer amount
+   * and returns the new value.
+   *
+   * The value is stored as the ASCII decimal representation of a 64-bit
+   * unsigned integer.
+   *
+   * If the key does not exist and a default is provided, sets the value of the
+   * key to the provided default and expiry time.
+   *
+   * If the key does not exist and no default is provided, or if the key exists
+   * with a value that does not conform to the expected representation, the
+   * operation will fail.
+   *
+   * If the operation succeeds, it returns the new value of the key.
+   *
+   * Note that the default value is always treated as None when using the text
+   * protocol.
+   *
+   * The expiry time can be Duration.Inf (infinite duration).
+   */
+  def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long]
+
+  def awaitDecrement(key: String, by: Long, default: Option[Long], exp: Duration): Long =
+    Await.result(decrement(key, by, default, exp), Duration.Inf)
+
+  /**
    * Shuts down the cache instance, performs any additional cleanups necessary.
    */
   def close(): Unit

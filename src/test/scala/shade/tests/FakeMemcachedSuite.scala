@@ -196,6 +196,82 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     }
   }
 
+  test("increment-decrement") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitGet[Int]("hello") === None)
+
+      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      cache.awaitIncrement("hello", 1, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("124"))
+
+      cache.awaitDecrement("hello", 1, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
+  test("increment-decrement-delta") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitGet[Int]("hello") === None)
+
+      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      cache.awaitIncrement("hello", 5, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("128"))
+
+      cache.awaitDecrement("hello", 5, None, 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
+  test("increment-default") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+
+      cache.awaitIncrement("hello", 1, Some(0), 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("0"))
+
+      cache.awaitIncrement("hello", 1, Some(0), 1.second)
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("1"))
+
+      Thread.sleep(3000)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === None)
+    }
+  }
+
+  test("increment-overflow") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitIncrement("hello", 1, Some(Long.MaxValue), 1.minute) === Long.MaxValue)
+
+      assert(cache.awaitIncrement("hello", 1, None, 1.minute) === Long.MinValue)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("9223372036854775808"))
+    }
+  }
+
+  test("decrement-underflow") {
+    withFakeMemcached { cache =>
+      assert(cache.awaitDecrement("hello", 1, Some(1), 1.minute) === 1)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitDecrement("hello", 1, None, 1.minute) === 0)
+
+      assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("0"))
+    }
+  }
+
   test("big-instance-1") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
