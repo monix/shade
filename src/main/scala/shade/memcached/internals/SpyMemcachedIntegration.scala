@@ -445,9 +445,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     spyMemcachedStatus: OperationStatus,
     key: String,
     result: MutablePartialResult[_])(handler: PartialFunction[Status, Unit]): Unit = {
-    val status = statusTranslation.applyOrElse(spyMemcachedStatus, UnhandledStatus.apply)
+    val status = statusTranslation.applyOrElse(spyMemcachedStatus, UnhandledStatus.fromSpyMemcachedStatus)
     handler.applyOrElse(status, {
-      case UnhandledStatus(underlyingStatus) => result.tryComplete(Failure(new UnhandledStatusException(s"${underlyingStatus.getClass}(${underlyingStatus.getMessage})")))
+      case UnhandledStatus(statusClass, statusMsg) => result.tryComplete(Failure(new UnhandledStatusException(s"$statusClass($statusMsg)")))
       // nothing
       case failure =>
         result.tryComplete(Success(FailedResult(key, failure)))
