@@ -173,20 +173,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     val op: GetOperation = opFact.get(key, new GetOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASNotFoundStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, None)))
-            case CASSuccessStatus =>
-            // nothing
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASNotFoundStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, None)))
+          case CASSuccessStatus =>
+        }
       }
 
       def gotData(k: String, flags: Int, data: Array[Byte]) {
@@ -209,18 +200,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     val op: Operation = opFact.store(StoreType.set, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASSuccessStatus =>
-            // nothing
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASSuccessStatus =>
+        }
       }
 
       def gotData(key: String, cas: Long) {
@@ -242,19 +224,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     val op: Operation = opFact.store(StoreType.add, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASExistsStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, None)))
-            case CASSuccessStatus =>
-            // nothing
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASExistsStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, None)))
+          case CASSuccessStatus =>
+        }
       }
 
       def gotData(key: String, cas: Long) {
@@ -282,20 +256,12 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
 
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASSuccessStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, true)))
-            case CASNotFoundStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, false)))
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASSuccessStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, true)))
+          case CASNotFoundStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, false)))
+        }
       }
     })
 
@@ -309,19 +275,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     val op: Operation = opFact.gets(key, new GetsOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASNotFoundStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, None)))
-            case CASSuccessStatus =>
-            // nothing
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASNotFoundStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, None)))
+          case CASSuccessStatus =>
+        }
       }
 
       def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]) {
@@ -348,22 +306,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
     val op = opFact.cas(StoreType.set, key, casID, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASSuccessStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, true)))
-            case CASExistsStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, false)))
-            case CASNotFoundStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, false)))
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASSuccessStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, true)))
+          case CASExistsStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, false)))
+          case CASNotFoundStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, false)))
+        }
       }
 
       def gotData(k: String, cas: Long) {
@@ -389,17 +339,10 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     }
     val op: Operation = opFact.mutate(mutator, key, by, default.getOrElse(0L), expiry, new OperationCallback {
       def receivedStatus(opStatus: OperationStatus) {
-        if (statusTranslation.isDefinedAt(opStatus))
-          statusTranslation(opStatus) match {
-            case CASSuccessStatus =>
-              result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong)))
-            case failure =>
-              result.tryComplete(Success(FailedResult(key, failure)))
-          }
-        else
-          throw new UnhandledStatusException(
-            s"${opStatus.getClass}(${opStatus.getMessage})"
-          )
+        handleStatus(opStatus, key, result) {
+          case CASSuccessStatus =>
+            result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong)))
+        }
       }
 
       def complete() {
@@ -448,7 +391,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     future
   }
 
-  protected final def statusTranslation: PartialFunction[OperationStatus, Status] = {
+  protected final val statusTranslation: PartialFunction[OperationStatus, Status] = {
     case _: CancelledOperationStatus =>
       CancelledStatus
     case _: TimedOutOperationStatus =>
@@ -482,5 +425,32 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     case _ =>
       // infinite duration (set to 0)
       0
+  }
+
+  /**
+   * Handles OperationStatuses from SpyMemcached
+   *
+   * The first argument list takes the SpyMemcached operation status, and also the key and result so that this method
+   * itself can attach sane failure handling.
+   *
+   * The second argument list is a simple PartialFunction that allows you to side effect for the translated [[Status]]s you care about,
+   * typically by completing the result.
+   *
+   * @param spyMemcachedStatus SpyMemcached OperationStatus to be translated
+   * @param key String key involved in the operation
+   * @param result MutablePartialResult
+   * @param handler a partial function that takes a translated [[Status]] and side-effects
+   */
+  private def handleStatus(
+    spyMemcachedStatus: OperationStatus,
+    key: String,
+    result: MutablePartialResult[_])(handler: PartialFunction[Status, Unit]): Unit = {
+    val status = statusTranslation.applyOrElse(spyMemcachedStatus, UnhandledStatus.fromSpyMemcachedStatus)
+    handler.applyOrElse(status, {
+      case UnhandledStatus(statusClass, statusMsg) => result.tryComplete(Failure(new UnhandledStatusException(s"$statusClass($statusMsg)")))
+      // nothing
+      case failure =>
+        result.tryComplete(Success(FailedResult(key, failure)))
+    }: Function[Status, Unit])
   }
 }
