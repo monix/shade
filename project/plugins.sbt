@@ -9,3 +9,5 @@ addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.0.1")
 
 // Upgrade when this issue is solved https://github.com/scoverage/sbt-coveralls/issues/73
 addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.0.0")
+
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.6")
