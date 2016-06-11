@@ -1,6 +1,6 @@
 name := "shade"
 
-version := "1.7.3"
+version := "1.7.4"
 
 organization := "com.bionicspirit"
 
@@ -12,7 +12,6 @@ compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
 scalacOptions ++= Seq(
   "-target:jvm-1.6", // generates code with the Java 6 class format
-  "-optimise", // enables optimisations
   "-Xfatal-warnings", // turns all warnings into errors ;-)
   // warnings
   "-unchecked", // able additional warnings where generated code depends on assumptions
@@ -59,11 +58,11 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "net.spy" % "spymemcached" % "2.12.0",
-  "org.slf4j" % "slf4j-api" % "1.7.13",
+  "net.spy" % "spymemcached" % "2.12.1",
+  "org.slf4j" % "slf4j-api" % "1.7.21",
   "org.monifu" %% "monifu-core" % "1.2",
   "ch.qos.logback" % "logback-classic" % "1.1.3" % Test,
-  "org.scalatest" %% "scalatest" % "2.2.4" % Test,
+  "org.scalatest" %% "scalatest" % "2.2.6" % Test,
   "org.scalacheck" %% "scalacheck" % "1.12.5" % Test
 )
 
