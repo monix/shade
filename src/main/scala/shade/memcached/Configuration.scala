@@ -1,5 +1,6 @@
 package shade.memcached
 
+import net.spy.memcached.ConnectionFactoryBuilder.Locator
 import net.spy.memcached.ops.OperationQueueFactory
 import net.spy.memcached.{ DefaultConnectionFactory, HashAlgorithm }
 
@@ -41,6 +42,8 @@ import scala.concurrent.duration._
  *                          If `None`, the default SpyMemcached implementation (an unbounded LinkedBlockingQueue) is used.
  *
  * @param hashAlgorithm     the method for hashing a cache key for server selection
+ *
+ * @param locator           locator selection, by default ARRAY_MOD
  */
 case class Configuration(
   addresses: String,
@@ -53,7 +56,8 @@ case class Configuration(
   opQueueFactory: Option[OperationQueueFactory] = None,
   writeQueueFactory: Option[OperationQueueFactory] = None,
   readQueueFactory: Option[OperationQueueFactory] = None,
-  hashAlgorithm: HashAlgorithm = DefaultConnectionFactory.DEFAULT_HASH)
+  hashAlgorithm: HashAlgorithm = DefaultConnectionFactory.DEFAULT_HASH,
+  locator: Locator = Locator.ARRAY_MOD)
 
 object Protocol extends Enumeration {
   type Type = Value
