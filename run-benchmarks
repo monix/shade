@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# We need to explicitly set scala version because we get java.lang.NoSuchMethodError
+# Perhaps caused by SBT-JMH being on Scala 2.10.x
+sbt ++2.11.8 clean benchmarking/'jmh:run -i 10 -wi 10 -f3 -t 1'
