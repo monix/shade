@@ -339,6 +339,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
         .setWriteOpQueueFactory(config.writeQueueFactory.orNull)
         .setShouldOptimize(config.shouldOptimize)
         .setHashAlg(config.hashAlgorithm)
+        .setLocatorType(config.locator)
 
       val withTimeout = config.operationTimeout match {
         case duration: FiniteDuration =>
