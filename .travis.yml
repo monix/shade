@@ -11,7 +11,7 @@ jdk:
 matrix:
   exclude:
     - scala: 2.12.1
-    - jdk: oraclejdk7
+      jdk: oraclejdk7
 services:
   - docker
 before_install:
