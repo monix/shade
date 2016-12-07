@@ -38,7 +38,7 @@ trait Memcached extends java.io.Closeable {
    */
   def delete(key: String): Future[Boolean]
 
-  def awaitDelete(key: String) =
+  def awaitDelete(key: String): Boolean =
     Await.result(delete(key), Duration.Inf)
 
   /**
