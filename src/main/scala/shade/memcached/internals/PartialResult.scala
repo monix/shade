@@ -1,6 +1,6 @@
 package shade.memcached.internals
 
-import monifu.concurrent.atomic.AtomicAny
+import monix.execution.atomic.AtomicAny
 
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Success, Try }
