@@ -2,7 +2,7 @@ package shade.memcached
 
 import java.util.concurrent.TimeUnit
 
-import monifu.concurrent.Scheduler
+import monix.execution.Scheduler
 import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
 import net.spy.memcached.auth.{ AuthDescriptor, PlainCallbackHandler }
 import net.spy.memcached.ops.Mutator

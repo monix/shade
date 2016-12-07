@@ -1,7 +1,7 @@
 package shade.inmemory
 
-import monifu.concurrent.Scheduler
-import monifu.concurrent.atomic.AtomicAny
+import monix.execution.Scheduler
+import monix.execution.atomic.AtomicAny
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._

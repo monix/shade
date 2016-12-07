@@ -4,8 +4,8 @@ import java.io.IOException
 import java.net.{ InetSocketAddress, SocketAddress }
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
-import monifu.concurrent.Scheduler
-import monifu.concurrent.atomic.Atomic
+import monix.execution.Scheduler
+import monix.execution.atomic.Atomic
 import net.spy.memcached._
 import net.spy.memcached.auth.AuthThreadMonitor
 import net.spy.memcached.compat.SpyObject
@@ -32,11 +32,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   require(addrs != null && addrs.nonEmpty, "Invalid addresses list")
   assert(cf.getOperationTimeout > 0, "Operation timeout must be positive")
 
-  protected final val opFact = cf.getOperationFactory
-  protected final val mconn = cf.createConnection(addrs.asJava)
+  protected final val opFact: OperationFactory = cf.getOperationFactory
+  protected final val mconn: MemcachedConnection = cf.createConnection(addrs.asJava)
   protected final val authDescriptor = Option(cf.getAuthDescriptor)
   protected final val authMonitor: AuthThreadMonitor = new AuthThreadMonitor
-  protected final val shuttingDown = Atomic(initialValue = false)
+  protected final val shuttingDown = Atomic(false)
 
   locally {
     if (authDescriptor.isDefined)
