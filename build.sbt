@@ -4,24 +4,28 @@ version := "1.7.4"
 
 organization := "com.bionicspirit"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.12.1"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8")
+crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.1")
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
-scalacOptions ++= Seq(
-  "-target:jvm-1.6", // generates code with the Java 6 class format
-  "-Xfatal-warnings", // turns all warnings into errors ;-)
-  // warnings
-  "-unchecked", // able additional warnings where generated code depends on assumptions
-  "-deprecation", // emit warning for usages of deprecated APIs
-  "-feature", // emit warning usages of features that should be imported explicitly
-  // possibly deprecated options
-  "-Yinline-warnings",
-  "-Ywarn-dead-code",
-  "-Ywarn-inaccessible"
-)
+scalacOptions ++= {
+  val baseOptions = Seq(
+    "-Xfatal-warnings", // turns all warnings into errors ;-)
+    // warnings
+    "-unchecked", // able additional warnings where generated code depends on assumptions
+    "-deprecation", // emit warning for usages of deprecated APIs
+    "-feature",     // emit warning usages of features that should be imported explicitly
+    // possibly deprecated options
+    "-Ywarn-dead-code",
+    "-Ywarn-inaccessible"
+  )
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, majorVersion)) if majorVersion >= 12 => baseOptions
+    case _ => baseOptions :+ "-target:jvm-1.6" // generates code with the Java 6 class format
+  }
+}
 
 // version specific compiler options
 scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -58,12 +62,12 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "net.spy" % "spymemcached" % "2.12.1",
-  "org.slf4j" % "slf4j-api" % "1.7.21",
-  "io.monix" %% "monix-execution" % "2.1.1",
-  "ch.qos.logback" % "logback-classic" % "1.1.7" % Test,
-  "org.scalatest" %% "scalatest" % "3.0.1" % Test,
-  "org.scalacheck" %% "scalacheck" % "1.13.4" % Test
+  "net.spy"        % "spymemcached"     % "2.12.1",
+  "org.slf4j"      % "slf4j-api"        % "1.7.21",
+  "io.monix"       %% "monix-execution" % "2.1.1",
+  "ch.qos.logback" % "logback-classic"  % "1.1.7" % Test,
+  "org.scalatest"  %% "scalatest"       % "3.0.1" % Test,
+  "org.scalacheck" %% "scalacheck"      % "1.13.4" % Test
 )
 
 libraryDependencies += ("org.scala-lang" % "scala-reflect" % scalaVersion.value % "compile")
@@ -77,12 +81,14 @@ publishTo := {
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 publishArtifact in Test := false
 
-pomIncludeRepository := { _ => false } // removes optional dependencies
+pomIncludeRepository := { _ =>
+  false
+} // removes optional dependencies
 
 scalariformSettings
 
