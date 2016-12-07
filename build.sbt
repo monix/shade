@@ -106,3 +106,12 @@ pomExtra in ThisBuild :=
         <url>https://www.bionicspirit.com/</url>
       </developer>
     </developers>
+
+// Multi-project-related
+
+lazy val root = project in file(".")
+
+lazy val benchmarking = (project in file("benchmarking"))
+  .enablePlugins(JmhPlugin)
+  .settings(libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.21")
+  .dependsOn(root)
