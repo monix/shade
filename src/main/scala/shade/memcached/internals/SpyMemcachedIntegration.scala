@@ -5,9 +5,9 @@ import java.net.{ InetSocketAddress, SocketAddress }
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
 import monix.execution.Scheduler
-import monix.execution.atomic.Atomic
+import monix.execution.atomic.{ Atomic, AtomicBoolean }
 import net.spy.memcached._
-import net.spy.memcached.auth.AuthThreadMonitor
+import net.spy.memcached.auth.{ AuthDescriptor, AuthThreadMonitor }
 import net.spy.memcached.compat.SpyObject
 import net.spy.memcached.ops._
 import shade.UnhandledStatusException
@@ -34,9 +34,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
   protected final val opFact: OperationFactory = cf.getOperationFactory
   protected final val mconn: MemcachedConnection = cf.createConnection(addrs.asJava)
-  protected final val authDescriptor = Option(cf.getAuthDescriptor)
+  protected final val authDescriptor: Option[AuthDescriptor] = Option(cf.getAuthDescriptor)
   protected final val authMonitor: AuthThreadMonitor = new AuthThreadMonitor
-  protected final val shuttingDown = Atomic(false)
+  protected final val shuttingDown: AtomicBoolean = Atomic(false)
 
   locally {
     if (authDescriptor.isDefined)
