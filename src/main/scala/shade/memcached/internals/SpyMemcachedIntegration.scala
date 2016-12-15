@@ -360,7 +360,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         if (!op.isCancelled)
           op.cancel()
       } catch {
-        case NonFatal(_) => // What to do here ?
+        case NonFatal(_) => 
       }
     })
 
