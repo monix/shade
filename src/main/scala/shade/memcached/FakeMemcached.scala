@@ -1,5 +1,7 @@
 package shade.memcached
 
+import monix.eval.Task
+import monix.execution.CancelableFuture
 import shade.UnhandledStatusException
 import shade.inmemory.InMemoryCache
 
@@ -9,24 +11,24 @@ import scala.concurrent.{ ExecutionContext, Future }
 class FakeMemcached(context: ExecutionContext) extends Memcached {
   private[this] implicit val ec = context
 
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
-        Future.successful(false)
+        CancelableFuture.successful(false)
       case _ =>
-        Future.successful(cache.add(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.add(key, codec.serialize(value).toSeq, exp))
     }
 
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
+  def setF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
-        Future.successful(())
+        CancelableFuture.successful(())
       case _ =>
-        Future.successful(cache.set(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.set(key, codec.serialize(value).toSeq, exp))
     }
 
-  def delete(key: String): Future[Boolean] =
-    Future.successful(cache.delete(key))
+  def deleteF(key: String): CancelableFuture[Boolean] =
+    CancelableFuture.successful(cache.delete(key))
 
   def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
     Future.successful(cache.get[Seq[Byte]](key)).map(_.map(x => codec.deserialize(x.toArray)))

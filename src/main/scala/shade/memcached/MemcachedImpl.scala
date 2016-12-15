@@ -2,7 +2,8 @@ package shade.memcached
 
 import java.util.concurrent.TimeUnit
 
-import monix.execution.Scheduler
+import monix.eval.Task
+import monix.execution.{ CancelableFuture, Scheduler }
 import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
 import net.spy.memcached.auth.{ AuthDescriptor, PlainCallbackHandler }
 import net.spy.memcached.ops.Mutator
@@ -32,10 +33,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  override def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
-        Future.successful(false)
+        CancelableFuture.successful(false)
       case _ =>
         instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, Some(_)) =>
@@ -52,10 +53,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
+  def setF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
-        Future.successful(())
+        CancelableFuture.successful(())
       case _ =>
         instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, _) =>
@@ -70,7 +71,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def delete(key: String): Future[Boolean] =
+  def deleteF(key: String): CancelableFuture[Boolean] =
     instance.realAsyncDelete(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, result) =>
         result
@@ -107,7 +108,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
   def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     expecting match {
       case None =>
-        add[T](key, newValue, exp)
+        addF[T](key, newValue, exp)
 
       case Some(expectingValue) =>
         instance.realAsyncGets(withPrefix(key), config.operationTimeout) flatMap {
@@ -154,7 +155,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       instance.realAsyncGets(keyWithPrefix, remainingTime.millis) flatMap {
         case SuccessfulResult(_, None) =>
           val result = cb(None)
-          add(key, result, exp) flatMap {
+          addF(key, result, exp) flatMap {
             case true =>
               Future.successful(f(None, result))
             case false =>

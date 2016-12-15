@@ -308,7 +308,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-3") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
-      val result = cache.set(impression.uuid, impression, 60.seconds) flatMap { _ =>
+      val result = cache.setF(impression.uuid, impression, 60.seconds) flatMap { _ =>
         cache.get[Impression](impression.uuid)
       }
 
