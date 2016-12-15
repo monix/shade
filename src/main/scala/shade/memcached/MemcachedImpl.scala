@@ -33,7 +33,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  override def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
+  def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
         CancelableFuture.successful(false)
