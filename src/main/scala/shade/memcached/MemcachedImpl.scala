@@ -33,7 +33,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
         CancelableFuture.successful(false)
@@ -53,7 +53,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def setF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
         CancelableFuture.successful(())
@@ -71,7 +71,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def deleteF(key: String): CancelableFuture[Boolean] =
+  def delete(key: String): CancelableFuture[Boolean] =
     instance.realAsyncDelete(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, result) =>
         result
@@ -108,7 +108,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
   def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
     expecting match {
       case None =>
-        addF[T](key, newValue, exp)
+        add[T](key, newValue, exp)
 
       case Some(expectingValue) =>
         instance.realAsyncGets(withPrefix(key), config.operationTimeout) flatMap {
@@ -155,7 +155,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       instance.realAsyncGets(keyWithPrefix, remainingTime.millis) flatMap {
         case SuccessfulResult(_, None) =>
           val result = cb(None)
-          addF(key, result, exp) flatMap {
+          add(key, result, exp) flatMap {
             case true =>
               Future.successful(f(None, result))
             case false =>

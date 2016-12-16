@@ -11,7 +11,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class FakeMemcached(context: ExecutionContext) extends Memcached {
   private[this] implicit val ec = context
 
-  def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
         CancelableFuture.successful(false)
@@ -19,7 +19,7 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
         CancelableFuture.successful(cache.add(key, codec.serialize(value).toSeq, exp))
     }
 
-  def setF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
         CancelableFuture.successful(())
@@ -27,7 +27,7 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
         CancelableFuture.successful(cache.set(key, codec.serialize(value).toSeq, exp))
     }
 
-  def deleteF(key: String): CancelableFuture[Boolean] =
+  def delete(key: String): CancelableFuture[Boolean] =
     CancelableFuture.successful(cache.delete(key))
 
   def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =

@@ -6,6 +6,7 @@ import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
 import monix.execution.{ Cancelable, CancelableFuture, Scheduler }
 import monix.execution.atomic.{ Atomic, AtomicBoolean }
+import monix.execution.cancelables.CompositeCancelable
 import net.spy.memcached._
 import net.spy.memcached.auth.{ AuthDescriptor, AuthThreadMonitor }
 import net.spy.memcached.compat.SpyObject
@@ -360,7 +361,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         if (!op.isCancelled)
           op.cancel()
       } catch {
-        case NonFatal(_) =>
+        case NonFatal(ex) =>
+          ec.reportFailure(ex)
       }
     })
 
@@ -375,6 +377,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     }
 
+    val mainCancelable = CompositeCancelable(operationCancelable, cancelable)
+
     val future = promise.future
 
     future.onComplete {
@@ -382,7 +386,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         try {
           cancelable.cancel()
         } catch {
-          case NonFatal(_) =>
+          case NonFatal(ex) =>
+            ec.reportFailure(ex)
         }
 
         msg match {
@@ -397,7 +402,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
     }
 
-    CancelableFuture(future, operationCancelable)
+    CancelableFuture(future, mainCancelable)
   }
 
   protected final val statusTranslation: PartialFunction[OperationStatus, Status] = {

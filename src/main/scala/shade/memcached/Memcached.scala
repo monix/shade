@@ -18,20 +18,20 @@ trait Memcached extends java.io.Closeable {
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def addF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean]
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean]
 
   def awaitAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Boolean =
-    Await.result(addF(key, value, exp), Duration.Inf)
+    Await.result(add(key, value, exp), Duration.Inf)
 
   /**
    * Sets a (key, value) in the cache store.
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def setF[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit]
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit]
 
   def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
-    Await.result(setF(key, value, exp), Duration.Inf)
+    Await.result(set(key, value, exp), Duration.Inf)
   }
 
   /**
@@ -39,10 +39,10 @@ trait Memcached extends java.io.Closeable {
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def deleteF(key: String): CancelableFuture[Boolean]
+  def delete(key: String): CancelableFuture[Boolean]
 
   def awaitDelete(key: String): Boolean =
-    Await.result(deleteF(key), Duration.Inf)
+    Await.result(delete(key), Duration.Inf)
 
   /**
    * Fetches a value from the cache store.
