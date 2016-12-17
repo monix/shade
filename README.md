@@ -19,7 +19,7 @@ architecture, choices that made sense in the context of Java, but
 don't make so much sense in the context of Scala (TODO: add details).
 
 The client is production quality.
-Supported for Scala versions: 2.10.x and 2.11.x
+Supported for Scala versions: 2.10, 2.11 and 2.12.
 
 ## Release Notes
 
