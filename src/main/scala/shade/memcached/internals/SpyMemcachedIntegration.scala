@@ -4,8 +4,9 @@ import java.io.IOException
 import java.net.{ InetSocketAddress, SocketAddress }
 import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
-import monix.execution.Scheduler
+import monix.execution.{ Cancelable, CancelableFuture, Scheduler }
 import monix.execution.atomic.{ Atomic, AtomicBoolean }
+import monix.execution.cancelables.CompositeCancelable
 import net.spy.memcached._
 import net.spy.memcached.auth.{ AuthDescriptor, AuthThreadMonitor }
 import net.spy.memcached.compat.SpyObject
@@ -14,7 +15,7 @@ import shade.UnhandledStatusException
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{ Duration, FiniteDuration }
-import scala.concurrent.{ ExecutionContext, Future, Promise }
+import scala.concurrent.{ ExecutionContext, Promise }
 import scala.util.control.NonFatal
 import scala.util.{ Failure, Success, Try }
 
@@ -167,7 +168,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     }
   }
 
-  def realAsyncGet(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Option[Array[Byte]]]] = {
+  def realAsyncGet(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[Array[Byte]]]] = {
     val promise = Promise[Result[Option[Array[Byte]]]]()
     val result = new MutablePartialResult[Option[Array[Byte]]]
 
@@ -194,7 +195,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncSet(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Long]] = {
+  def realAsyncSet(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Long]] = {
     val promise = Promise[Result[Long]]()
     val result = new MutablePartialResult[Long]
 
@@ -218,7 +219,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncAdd(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Option[Long]]] = {
+  def realAsyncAdd(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[Long]]] = {
     val promise = Promise[Result[Option[Long]]]()
     val result = new MutablePartialResult[Option[Long]]
 
@@ -244,7 +245,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncDelete(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Boolean]] = {
+  def realAsyncDelete(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Boolean]] = {
     val promise = Promise[Result[Boolean]]()
     val result = new MutablePartialResult[Boolean]
 
@@ -269,7 +270,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncGets(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Option[(Array[Byte], Long)]]] = {
+  def realAsyncGets(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[(Array[Byte], Long)]]] = {
     val promise = Promise[Result[Option[(Array[Byte], Long)]]]()
     val result = new MutablePartialResult[Option[(Array[Byte], Long)]]
 
@@ -300,7 +301,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncCAS(key: String, casID: Long, flags: Int, data: Array[Byte], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Boolean]] = {
+  def realAsyncCAS(key: String, casID: Long, flags: Int, data: Array[Byte], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Boolean]] = {
     val promise = Promise[Result[Boolean]]()
     val result = new MutablePartialResult[Boolean]
 
@@ -329,7 +330,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncMutate(key: String, by: Long, mutator: Mutator, default: Option[Long], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[Long]] = {
+  def realAsyncMutate(key: String, by: Long, mutator: Mutator, default: Option[Long], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Long]] = {
     val promise = Promise[Result[Long]]()
     val result = new MutablePartialResult[Long]
 
@@ -354,7 +355,17 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): Future[Result[T]] = {
+  protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[T]] = {
+    val operationCancelable = Cancelable(() => {
+      try {
+        if (!op.isCancelled)
+          op.cancel()
+      } catch {
+        case NonFatal(ex) =>
+          ec.reportFailure(ex)
+      }
+    })
+
     val cancelable = scheduler.scheduleOnce(atMost) {
       promise.tryComplete {
         if (op.hasErrored)
@@ -366,6 +377,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     }
 
+    val mainCancelable = CompositeCancelable(operationCancelable, cancelable)
+
     val future = promise.future
 
     future.onComplete {
@@ -373,7 +386,8 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         try {
           cancelable.cancel()
         } catch {
-          case NonFatal(_) =>
+          case NonFatal(ex) =>
+            ec.reportFailure(ex)
         }
 
         msg match {
@@ -388,7 +402,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
     }
 
-    future
+    CancelableFuture(future, mainCancelable)
   }
 
   protected final val statusTranslation: PartialFunction[OperationStatus, Status] = {

@@ -2,7 +2,8 @@ package shade.memcached
 
 import java.util.concurrent.TimeUnit
 
-import monix.execution.Scheduler
+import monix.eval.Task
+import monix.execution.{ CancelableFuture, Scheduler }
 import net.spy.memcached.ConnectionFactoryBuilder.{ Protocol => SpyProtocol }
 import net.spy.memcached.auth.{ AuthDescriptor, PlainCallbackHandler }
 import net.spy.memcached.ops.Mutator
@@ -32,10 +33,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
-        Future.successful(false)
+        CancelableFuture.successful(false)
       case _ =>
         instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, Some(_)) =>
@@ -52,10 +53,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit] =
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
-        Future.successful(())
+        CancelableFuture.successful(())
       case _ =>
         instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, _) =>
@@ -70,7 +71,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def delete(key: String): Future[Boolean] =
+  def delete(key: String): CancelableFuture[Boolean] =
     instance.realAsyncDelete(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, result) =>
         result

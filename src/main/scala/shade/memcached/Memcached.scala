@@ -1,5 +1,8 @@
 package shade.memcached
 
+import monix.eval.Task
+import monix.execution.CancelableFuture
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
@@ -15,7 +18,7 @@ trait Memcached extends java.io.Closeable {
    *
    * @return either true, in case the value was set, or false otherwise
    */
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean]
+  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean]
 
   def awaitAdd[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Boolean =
     Await.result(add(key, value, exp), Duration.Inf)
@@ -25,7 +28,7 @@ trait Memcached extends java.io.Closeable {
    *
    * The expiry time can be Duration.Inf (infinite duration).
    */
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Future[Unit]
+  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit]
 
   def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
     Await.result(set(key, value, exp), Duration.Inf)
@@ -36,7 +39,7 @@ trait Memcached extends java.io.Closeable {
    *
    * @return true if a key was deleted or false if there was nothing there to delete
    */
-  def delete(key: String): Future[Boolean]
+  def delete(key: String): CancelableFuture[Boolean]
 
   def awaitDelete(key: String): Boolean =
     Await.result(delete(key), Duration.Inf)
