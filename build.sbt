@@ -1,8 +1,8 @@
 name := "shade"
 
-version := "1.7.4"
+version := "1.8.0"
 
-organization := "com.bionicspirit"
+organization := "io.monix"
 
 scalaVersion := "2.11.8"
 
@@ -62,56 +62,57 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "net.spy"        % "spymemcached"     % "2.12.1",
-  "org.slf4j"      % "slf4j-api"        % "1.7.21",
+  "net.spy"        %  "spymemcached"    % "2.12.1",
+  "org.slf4j"      %  "slf4j-api"       % "1.7.21",
   "io.monix"       %% "monix-eval"      % "2.1.1",
-  "ch.qos.logback" % "logback-classic"  % "1.1.7" % Test,
-  "org.scalatest"  %% "scalatest"       % "3.0.1" % Test,
+  "ch.qos.logback" %  "logback-classic" % "1.1.7"  % Test,
+  "org.scalatest"  %% "scalatest"       % "3.0.1"  % Test,
   "org.scalacheck" %% "scalacheck"      % "1.13.4" % Test
 )
 
 libraryDependencies += ("org.scala-lang" % "scala-reflect" % scalaVersion.value % "compile")
 
-publishMavenStyle := true
+// -- Settings meant for deployment on oss.sonatype.org
 
-publishArtifact in Test := false
+useGpg := true
+useGpgAgent := true
+usePgpKeyHex("2673B174C4071B0E")
+
+publishMavenStyle := true
 
 publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 
 publishArtifact in Test := false
-
-pomIncludeRepository := { _ =>
-  false
-} // removes optional dependencies
+pomIncludeRepository := { _ => false } // removes optional dependencies
 
 scalariformSettings
 
 pomExtra in ThisBuild :=
-  <url>https://github.com/alexandru/shade</url>
-    <licenses>
-      <license>
-        <name>The MIT License</name>
-        <url>http://opensource.org/licenses/MIT</url>
-        <distribution>repo</distribution>
-      </license>
-    </licenses>
-    <scm>
-      <url>git@github.com:bionicspirit/shade.git</url>
-      <connection>scm:git:git@github.com:bionicspirit/shade.git</connection>
-    </scm>
-    <developers>
-      <developer>
-        <id>alex_ndc</id>
-        <name>Alexandru Nedelcu</name>
-        <url>https://www.bionicspirit.com/</url>
-      </developer>
-    </developers>
+  <url>https://github.com/monix/shade</url>
+  <licenses>
+    <license>
+      <name>The MIT License</name>
+      <url>http://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:monix/shade.git</url>
+    <connection>scm:git:git@github.com:monix/shade.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>alex_ndc</id>
+      <name>Alexandru Nedelcu</name>
+      <url>https://alexn.org</url>
+    </developer>
+  </developers>
 
 // Multi-project-related
 

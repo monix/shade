@@ -1,8 +1,8 @@
 # Shade - Memcached Client for Scala
 
-[![Build Status](https://travis-ci.org/alexandru/shade.svg?branch=master)](https://travis-ci.org/alexandru/shade)
-[![Coverage Status](https://coveralls.io/repos/alexandru/shade/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexandru/shade?branch=master)
-[![Join the chat at https://gitter.im/alexandru/shade](https://badges.gitter.im/alexandru/shade.svg)](https://gitter.im/alexandru/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/monix/shade.svg?branch=master)](https://travis-ci.org/monix/shade)
+[![Coverage Status](https://coveralls.io/repos/monix/shade/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexandru/shade?branch=master)
+[![Join the chat at https://gitter.im/monix/shade](https://badges.gitter.im/monix/shade.svg)](https://gitter.im/monix/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Overview
 
@@ -23,6 +23,7 @@ Supported for Scala versions: 2.10.x and 2.11.x
 
 ## Release Notes
 
+- [Version 1.8.x](release-notes/1.8.md)
 - [Version 1.7.x](release-notes/1.7.md)
 - [Version 1.6.0](release-notes/1.6.0.md)
 
@@ -36,7 +37,7 @@ These are the people maintaining this project that you can annoy:
 ## Usage From SBT
 
 ```scala
-dependencies += "com.bionicspirit" %% "shade" % "1.7.4"
+dependencies += "io.monix" %% "shade" % "1.8.0"
 ```
 
 ### Initializing the Memcached Client

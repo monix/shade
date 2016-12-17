@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2012-2017 by its authors. Some rights reserved.
+ * See the project homepage at: https://github.com/monix/shade
+ *
+ * Licensed under the MIT License (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy
+ * of the License at:
+ *
+ * https://github.com/monix/shade/blob/master/LICENSE.txt
+ */
+
 package shade.memcached.internals
 
 import java.io.IOException
@@ -6,7 +17,6 @@ import java.util.concurrent.{ CountDownLatch, TimeUnit }
 
 import monix.execution.{ Cancelable, CancelableFuture, Scheduler }
 import monix.execution.atomic.{ Atomic, AtomicBoolean }
-import monix.execution.cancelables.CompositeCancelable
 import net.spy.memcached._
 import net.spy.memcached.auth.{ AuthDescriptor, AuthThreadMonitor }
 import net.spy.memcached.compat.SpyObject
@@ -335,9 +345,10 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Long]
 
     val expiry = default match {
-      case Some(d) => expiryToSeconds(exp).toInt
+      case Some(_) => expiryToSeconds(exp).toInt
       case None => -1 // expiry of all 1-bits disables setting default in case of nonexistent key
     }
+
     val op: Operation = opFact.mutate(mutator, key, by, default.getOrElse(0L), expiry, new OperationCallback {
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
@@ -366,7 +377,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    val cancelable = scheduler.scheduleOnce(atMost) {
+    val timeout = scheduler.scheduleOnce(atMost) {
       promise.tryComplete {
         if (op.hasErrored)
           Failure(op.getException)
@@ -377,29 +388,34 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     }
 
-    val mainCancelable = CompositeCancelable(operationCancelable, cancelable)
-
     val future = promise.future
+    val mainCancelable = Cancelable { () =>
+      timeout.cancel()
+      operationCancelable.cancel()
+    }
 
-    future.onComplete {
-      case msg =>
-        try {
-          cancelable.cancel()
-        } catch {
-          case NonFatal(ex) =>
-            ec.reportFailure(ex)
-        }
+    future.onComplete { msg =>
+      try {
+        timeout.cancel()
+      } catch {
+        case NonFatal(ex) =>
+          ec.reportFailure(ex)
+      }
 
-        msg match {
-          case Success(FailedResult(_, TimedOutStatus)) =>
-            MemcachedConnection.opTimedOut(op)
-            op.timeOut()
-            if (!op.isCancelled) try op.cancel() catch { case NonFatal(_) => }
-          case Success(FailedResult(_, _)) =>
-            if (!op.isCancelled) try op.cancel() catch { case NonFatal(_) => }
-          case _ =>
-            MemcachedConnection.opSucceeded(op)
-        }
+      msg match {
+        case Success(FailedResult(_, TimedOutStatus)) =>
+          MemcachedConnection.opTimedOut(op)
+          op.timeOut()
+          if (!op.isCancelled) try op.cancel() catch {
+            case NonFatal(_) =>
+          }
+        case Success(FailedResult(_, _)) =>
+          if (!op.isCancelled) try op.cancel() catch {
+            case NonFatal(_) =>
+          }
+        case _ =>
+          MemcachedConnection.opSucceeded(op)
+      }
     }
 
     CancelableFuture(future, mainCancelable)
