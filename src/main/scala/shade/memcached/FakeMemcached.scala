@@ -11,7 +11,6 @@
 
 package shade.memcached
 
-import monix.eval.Task
 import monix.execution.CancelableFuture
 import shade.UnhandledStatusException
 import shade.inmemory.InMemoryCache

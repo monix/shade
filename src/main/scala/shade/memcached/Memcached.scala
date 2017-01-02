@@ -11,7 +11,6 @@
 
 package shade.memcached
 
-import monix.eval.Task
 import monix.execution.CancelableFuture
 
 import scala.concurrent.duration.Duration
