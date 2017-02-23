@@ -26,7 +26,7 @@ class MutablePartialResultSuite
     val promise = Promise[Result[Boolean]]()
     toCheck.completePromise("key1", promise)
     whenReady(promise.future) {
-      case SuccessfulResult(_, r) => assert(r == expected)
+      case SuccessfulResult(_, r, _) => assert(r == expected)
       case _ => fail("not successful")
     }
   }
@@ -42,27 +42,27 @@ class MutablePartialResultSuite
 
   test("#tryComplete on a fresh MutablePartialResult") {
     val pResult = new MutablePartialResult[Boolean]
-    pResult.tryComplete(Success(SuccessfulResult("key1", false)))
+    pResult.tryComplete(Success(SuccessfulResult("key1", false, 0)))
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 
   test("#tryComplete on a MutablePartialResult that has already been completed") {
     val pResult = new MutablePartialResult[Boolean]
-    assert(pResult.tryComplete(Success(SuccessfulResult("key1", false))))
-    assert(!pResult.tryComplete(Success(SuccessfulResult("key1", true))))
+    assert(pResult.tryComplete(Success(SuccessfulResult("key1", false, 0))))
+    assert(!pResult.tryComplete(Success(SuccessfulResult("key1", true, 0))))
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 
   test("#tryCompleteWith on a fresh MutablePartialResult") {
     val pResult = new MutablePartialResult[Boolean]
-    pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false)))
+    pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false, 0)))
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 
   test("#tryCompleteWith on a MutablePartialResult that has already been completed") {
     val pResult = new MutablePartialResult[Boolean]
-    assert(pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false))))
-    assert(!pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", true))))
+    assert(pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", false, 0))))
+    assert(!pResult.tryCompleteWith(Future.successful(SuccessfulResult("key1", true, 0))))
     assertCompletePromise(toCheck = pResult, expected = false)
   }
 

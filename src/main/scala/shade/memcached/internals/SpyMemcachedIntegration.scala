@@ -186,14 +186,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASNotFoundStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, None)))
+            result.tryComplete(Success(SuccessfulResult(key, None, 0)))
           case CASSuccessStatus =>
         }
       }
 
       def gotData(k: String, flags: Int, data: Array[Byte]) {
         assert(key == k, "Wrong key returned")
-        result.tryComplete(Success(SuccessfulResult(key, Option(data))))
+        result.tryComplete(Success(SuccessfulResult(key, Option(data), flags)))
       }
 
       def complete() {
@@ -217,7 +217,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
 
       def gotData(key: String, cas: Long) {
-        result.tryComplete(Success(SuccessfulResult(key, cas)))
+        result.tryComplete(Success(SuccessfulResult(key, cas, flags)))
       }
 
       def complete() {
@@ -237,13 +237,13 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASExistsStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, None)))
+            result.tryComplete(Success(SuccessfulResult(key, None, flags)))
           case CASSuccessStatus =>
         }
       }
 
       def gotData(key: String, cas: Long) {
-        result.tryComplete(Success(SuccessfulResult(key, Some(cas))))
+        result.tryComplete(Success(SuccessfulResult(key, Some(cas), flags)))
       }
 
       def complete() {
@@ -269,9 +269,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, true)))
+            result.tryComplete(Success(SuccessfulResult(key, true, 0)))
           case CASNotFoundStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, false)))
+            result.tryComplete(Success(SuccessfulResult(key, false, 0)))
         }
       }
     })
@@ -288,7 +288,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASNotFoundStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, None)))
+            result.tryComplete(Success(SuccessfulResult(key, None, 0)))
           case CASSuccessStatus =>
         }
       }
@@ -298,7 +298,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         assert(cas > 0, s"CAS was less than zero:  $cas")
 
         result.tryComplete(Try {
-          SuccessfulResult(key, Option(data).map(d => (d, cas)))
+          SuccessfulResult(key, Option(data).map(d => (d, cas)), flags)
         })
       }
 
@@ -319,11 +319,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, true)))
+            result.tryComplete(Success(SuccessfulResult(key, true, flags)))
           case CASExistsStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, false)))
+            result.tryComplete(Success(SuccessfulResult(key, false, flags)))
           case CASNotFoundStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, false)))
+            result.tryComplete(Success(SuccessfulResult(key, false, flags)))
         }
       }
 
@@ -353,7 +353,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
-            result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong)))
+            result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong, 0)))
         }
       }
 

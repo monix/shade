@@ -23,8 +23,8 @@ class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenProp
    */
   private def serdesCheck[A: Arbitrary](codec: Codec[A]): Unit = {
     forAll { n: A =>
-      val serialised = codec.serialize(n)
-      val deserialised = codec.deserialize(serialised)
+      val serialised = codec.serialize(n, 0)
+      val deserialised = codec.deserialize(serialised, 0)
       assert(deserialised == n)
     }
   }
