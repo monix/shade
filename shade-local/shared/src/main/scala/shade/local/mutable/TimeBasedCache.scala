@@ -15,6 +15,7 @@ import monix.eval.Task
 import monix.execution.Scheduler
 import monix.execution.atomic.PaddingStrategy.NoPadding
 import monix.execution.atomic.{AtomicAny, PaddingStrategy}
+import shade.local.Platform
 import shade.local.immutable.{TimeBasedCache => ImmutableTimeBasedCache}
 import shade.local.immutable.TimeBasedCache.Timestamp
 import scala.annotation.tailrec
@@ -181,7 +182,7 @@ object TimeBasedCache {
     */
   def apply[A](
     cleanupPeriod: FiniteDuration = 3.seconds,
-    distribution: Int = 1,
+    distribution: Int = Platform.parallelism,
     padding: PaddingStrategy = NoPadding)
     (implicit s: Scheduler): TimeBasedCache[A] = {
 

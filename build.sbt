@@ -1,3 +1,8 @@
+import com.typesafe.sbt.pgp.PgpKeys
+
+import scala.xml.Elem
+import scala.xml.transform.{RewriteRule, RuleTransformer}
+
 val monixVersion = "2.2.2"
 
 lazy val sharedSettings = Seq(
@@ -21,13 +26,6 @@ lazy val sharedSettings = Seq(
     "-Ywarn-dead-code",
     "-Ywarn-inaccessible"
   ),
-
-  // Force building with Java 8
-  initialize := {
-    val required = "1.8"
-    val current  = sys.props("java.specification.version")
-    assert(current == required, s"Unsupported build JDK: java.specification.version $current != $required")
-  },
 
   // Targeting Java 6, but only for Scala <= 2.11
   javacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -96,9 +94,15 @@ lazy val sharedSettings = Seq(
 
   testFrameworks := Seq(new TestFramework("minitest.runner.Framework")),
   libraryDependencies ++= Seq(
-    "ch.qos.logback" %  "logback-classic" % "1.1.7"  % Test,
-    "io.monix" %% "minitest-laws" % "0.27" % Test
+    "io.monix" %%% "minitest-laws" % "0.27" % Test
   ),
+
+  // Trying to disable parallel testing
+  parallelExecution in Test := false,
+  parallelExecution in IntegrationTest := false,
+  testForkedParallel in Test := false,
+  testForkedParallel in IntegrationTest := false,
+  concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
 
   // -- Settings meant for deployment on oss.sonatype.org
 
@@ -107,6 +111,9 @@ lazy val sharedSettings = Seq(
   usePgpKeyHex("2673B174C4071B0E"),
 
   publishMavenStyle := true,
+  releaseCrossBuild := true,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -117,6 +124,18 @@ lazy val sharedSettings = Seq(
 
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false }, // removes optional dependencies
+
+  // For evicting Scoverage out of the generated POM
+  // See: https://github.com/scoverage/sbt-scoverage/issues/153
+  pomPostProcess := { (node: xml.Node) =>
+    new RuleTransformer(new RewriteRule {
+      override def transform(node: xml.Node): Seq[xml.Node] = node match {
+        case e: Elem
+          if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
+        case _ => Seq(node)
+      }
+    }).transform(node).head
+  },
 
   pomExtra in ThisBuild :=
     <url>https://github.com/monix/shade</url>
@@ -140,6 +159,14 @@ lazy val sharedSettings = Seq(
     </developers>
 )
 
+lazy val cmdlineProfile =
+  sys.props.getOrElse("sbt.profile", default = "")
+
+def profile: Project ⇒ Project = pr => cmdlineProfile match {
+  case "coverage" => pr
+  case _ => pr.disablePlugins(scoverage.ScoverageSbtPlugin)
+}
+
 lazy val doNotPublishArtifact = Seq(
   publishArtifact := false,
   publishArtifact in (Compile, packageDoc) := false,
@@ -147,31 +174,53 @@ lazy val doNotPublishArtifact = Seq(
   publishArtifact in (Compile, packageBin) := false
 )
 
+lazy val crossSettings = sharedSettings ++ Seq(
+  unmanagedSourceDirectories in Compile += {
+    baseDirectory.value.getParentFile / "shared" / "src" / "main" / "scala"
+  },
+  unmanagedSourceDirectories in Test += {
+    baseDirectory.value.getParentFile / "shared" / "src" / "test" / "scala"
+  }
+)
+
+lazy val scalaJSSettings = Seq(
+  coverageExcludedFiles := ".*"
+)
+
 // Multi-project-related
 
 lazy val shade = project.in(file("."))
-  .aggregate(local, memcached)
+  .configure(profile)
+  .aggregate(localJVM, localJS, memcached)
   .settings(sharedSettings)
   .settings(doNotPublishArtifact)
   .settings(name := "shade")
 
-lazy val local = project.in(file("shade-local"))
-  .settings(sharedSettings)
-  .settings(Seq(
-    name := "shade-local",
-    libraryDependencies ++= Seq(
-      "io.monix" %% "monix-eval" % monixVersion
-    )
-  ))
+lazy val localCommon = crossSettings ++ sharedSettings ++ Seq(
+  name := "shade-local",
+  libraryDependencies ++= Seq(
+    "io.monix" %%% "monix-eval" % monixVersion
+  )
+)
+
+lazy val localJVM = project.in(file("shade-local/jvm"))
+  .configure(profile)
+  .settings(localCommon)
+
+lazy val localJS = project.in(file("shade-local/js"))
+  .settings(localCommon)
+  .settings(scalaJSSettings)
+  .enablePlugins(ScalaJSPlugin)
 
 lazy val memcached = project.in(file("shade-memcached"))
-  .dependsOn(local)
+  .configure(profile)
+  .dependsOn(localJVM)
   .settings(sharedSettings)
   .settings(Seq(
     name := "shade-memcached",
     libraryDependencies ++= Seq(
-      "io.monix"       %% "monix-eval"      % monixVersion,
       "net.spy"        %  "spymemcached"    % "2.12.2",
-      "org.slf4j"      %  "slf4j-api"       % "1.7.23"
+      "org.slf4j"      %  "slf4j-api"       % "1.7.23",
+      "ch.qos.logback" %  "logback-classic" % "1.1.7"   % Test
     )
   ))

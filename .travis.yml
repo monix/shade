@@ -8,18 +8,28 @@ scala:
 jdk:
   - oraclejdk7
   - oraclejdk8
+
 matrix:
   exclude:
     - scala: 2.12.1
       jdk: oraclejdk7
+
 services:
   - docker
 before_install:
   - sudo service memcached stop
   - docker pull memcached
   - docker run -d -p 127.0.0.1:11211:11211 memcached memcached
-script: "sbt clean coverage test"
-after_success: "sbt coverageReport coveralls"
+
+env:
+  global:
+    - MAIN_SCALA_VERSION=2.11.8
+
+script:
+  - project/travis-build.sh
+after_success:
+  - project/travis-post-build.sh
+
 cache:
   directories:
   - $HOME/.sbt/0.13
@@ -27,6 +37,7 @@ cache:
   - $HOME/.sbt/cache
   - $HOME/.sbt/launchers
   - $HOME/.ivy2
+
 before_cache:
   - du -h -d 1 $HOME/.ivy2/
   - du -h -d 2 $HOME/.sbt/
