@@ -222,5 +222,7 @@ lazy val memcached = project.in(file("shade-memcached"))
       "net.spy"        %  "spymemcached"    % "2.12.2",
       "org.slf4j"      %  "slf4j-api"       % "1.7.23",
       "ch.qos.logback" %  "logback-classic" % "1.1.7"   % Test
-    )
+    ),
+    // Will trigger serialization error if not forked
+    fork := true
   ))

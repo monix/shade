@@ -55,7 +55,7 @@ import scala.util.control.NonFatal
   * @define expParamDesc specifies the expiry time, can be infinite
   *         (`Duration.Inf`)
   */
-abstract class TimeBasedCache[A] extends java.io.Closeable {
+abstract class TimeBasedCache[A] extends AutoCloseable {
   /** Return the value associated with the given `key`.
     *
     * @return `Some(value)` in case there exists a `key` in

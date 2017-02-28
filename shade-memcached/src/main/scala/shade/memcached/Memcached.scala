@@ -12,7 +12,8 @@
 package shade.memcached
 
 import monix.eval.Task
-import monix.execution.CancelableFuture
+import monix.execution.{CancelableFuture, Scheduler}
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
@@ -263,14 +264,18 @@ abstract class Memcached extends java.io.Closeable {
     *
     * @return $casReturn
     */
-  def compareAndSetL[T](key: String, current: T, update: T, exp: Duration)
+  def compareAndSetL[T](key: String, current: Option[T], update: T, exp: Duration)
     (implicit codec: Codec[T]): Task[Boolean] = {
 
-    getsL[T](key).flatMap {
-      case Some(r) if r.getValue == current =>
-        rawCompareAndSetL[T](key, r.getCas, update, exp)
-      case _ =>
-        Task.now(false)
+    current match {
+      case None => addL(key, update, exp)
+      case Some(expected) =>
+        getsL[T](key).flatMap {
+          case Some(r) if r.getValue == expected =>
+            rawCompareAndSetL[T](key, r.getCas, update, exp)
+          case _ =>
+            Task.now(false)
+        }
     }
   }
 
@@ -286,14 +291,18 @@ abstract class Memcached extends java.io.Closeable {
     *
     * @return $casReturn
     */
-  def compareAndSet[T](key: String, current: T, update: T, exp: Duration)
+  def compareAndSet[T](key: String, current: Option[T], update: T, exp: Duration)
     (implicit codec: Codec[T], ec: ExecutionContext): CancelableFuture[Boolean] = {
 
-    gets[T](key).flatMap {
-      case Some(r) if r.getValue == current =>
-        rawCompareAndSet[T](key, r.getCas, update, exp)
-      case _ =>
-        CancelableFuture.successful(false)
+    current match {
+      case None => add(key, update, exp)
+      case Some(expected) =>
+        gets[T](key).flatMap {
+          case Some(r) if r.getValue == expected =>
+            rawCompareAndSet[T](key, r.getCas, update, exp)
+          case _ =>
+            CancelableFuture.successful(false)
+        }
     }
   }
 
@@ -487,6 +496,10 @@ object Memcached {
   def apply(config: Configuration): Memcached =
     new SpyMemcached(config)
 
+  /** Returns a [[FakeMemcached]] implementation, useful for usage in tests. */
+  def fake(implicit s: Scheduler): Memcached =
+    new FakeMemcached(s)
+
   /** Extra extensions for [[Memcached]] */
   implicit class Extensions(val client: Memcached) extends AnyVal {
     /** Performs a [[Memcached.add]] and blocks for the result. */
@@ -515,7 +528,7 @@ object Memcached {
       Await.result(client.rawCompareAndSet(key, casId, update, exp)(codec, ec), awaitAtMost)
 
     /** Performs a [[Memcached.rawCompareAndSet]] and blocks for the result. */
-    def awaitCompareAndSet[T](key: String, current: T, update: T, exp: Duration, awaitAtMost: Duration = Duration.Inf)
+    def awaitCompareAndSet[T](key: String, current: Option[T], update: T, exp: Duration, awaitAtMost: Duration = Duration.Inf)
       (implicit codec: Codec[T], ec: ExecutionContext): Boolean =
       Await.result(client.compareAndSet(key, current, update, exp)(codec, ec), awaitAtMost)
 
