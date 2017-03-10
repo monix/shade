@@ -38,7 +38,7 @@ These are the people maintaining this project that you can annoy:
 ## Usage From SBT
 
 ```scala
-dependencies += "io.monix" %% "shade" % "1.9.1"
+dependencies += "io.monix" %% "shade" % "1.9.3"
 ```
 
 ### Initializing the Memcached Client
