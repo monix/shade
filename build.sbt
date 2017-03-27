@@ -1,6 +1,6 @@
 name := "shade"
 
-version := "1.9.3"
+version := "1.9.4"
 
 organization := "io.monix"
 
@@ -64,7 +64,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "net.spy"        %  "spymemcached"    % "2.12.2",
   "org.slf4j"      %  "slf4j-api"       % "1.7.23",
-  "io.monix"       %% "monix-eval"      % "2.2.3",
+  "io.monix"       %% "monix-eval"      % "2.2.4",
   "ch.qos.logback" %  "logback-classic" % "1.1.7"  % Test,
   "org.scalatest"  %% "scalatest"       % "3.0.1"  % Test,
   "org.scalacheck" %% "scalacheck"      % "1.13.4" % Test
