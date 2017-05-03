@@ -1,12 +1,12 @@
 name := "shade"
 
-version := "1.9.4"
+version := "1.9.5"
 
 organization := "io.monix"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.1")
+crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2")
 
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
@@ -64,7 +64,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "net.spy"        %  "spymemcached"    % "2.12.2",
   "org.slf4j"      %  "slf4j-api"       % "1.7.23",
-  "io.monix"       %% "monix-eval"      % "2.2.4",
+  "io.monix"       %% "monix-eval"      % "2.3.0",
   "ch.qos.logback" %  "logback-classic" % "1.1.7"  % Test,
   "org.scalatest"  %% "scalatest"       % "3.0.1"  % Test,
   "org.scalacheck" %% "scalacheck"      % "1.13.4" % Test
