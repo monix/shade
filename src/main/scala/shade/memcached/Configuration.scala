@@ -38,6 +38,11 @@ import scala.concurrent.duration._
  * @param operationTimeout  is the default operation timeout; When the limit is reached, the
  *                          Future responses finish with Failure(TimeoutException)
  *
+ * @param timeoutThreshold  is the maximum number of timeouts for a connection that will be tolerated before
+ *                          the connection is considered dead and will not be retried. Once this threshold is breached,
+ *                          the client will consider the connection to be lost and attempt to establish a new one.
+ *                          If None, the default Spymemcached implementation is used (998)
+ *
  * @param shouldOptimize    If true, optimization will collapse multiple sequential get ops.
  *
  * @param opQueueFactory    can be used to customize the operations queue,
@@ -63,6 +68,7 @@ case class Configuration(
   protocol: Protocol.Value = Protocol.Binary,
   failureMode: FailureMode.Value = FailureMode.Retry,
   operationTimeout: FiniteDuration = 1.second,
+  timeoutThreshold: Option[Int] = None,
   shouldOptimize: Boolean = false,
   opQueueFactory: Option[OperationQueueFactory] = None,
   writeQueueFactory: Option[OperationQueueFactory] = None,
