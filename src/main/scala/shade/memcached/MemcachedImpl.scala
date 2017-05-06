@@ -359,16 +359,21 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
           builder
       }
 
+      val withTimeoutThreshold = config.timeoutThreshold match {
+        case Some(threshold) => withTimeout.setTimeoutExceptionThreshold(threshold)
+        case _ => withTimeout
+      }
+
       val withAuth = config.authentication match {
         case Some(credentials) =>
-          withTimeout.setAuthDescriptor(
+          withTimeoutThreshold.setAuthDescriptor(
             new AuthDescriptor(
               Array("PLAIN"),
               new PlainCallbackHandler(credentials.username, credentials.password)
             )
           )
         case None =>
-          withTimeout
+          withTimeoutThreshold
       }
 
       withAuth
