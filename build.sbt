@@ -81,7 +81,7 @@ enablePlugins(GitVersioning)
 /* The BaseVersion setting represents the in-development (upcoming) version,
  * as an alternative to SNAPSHOTS.
  */
-git.baseVersion := "1.10.0"
+git.baseVersion := "1.11.0"
 
 val ReleaseTag = """^v([\d\.]+)$""".r
 git.gitTagToVersionNumber := {
@@ -127,7 +127,7 @@ homepage := Some(url("https://github.com/monix/shade"))
 
 scmInfo := Some(
   ScmInfo(
-    url("https://github.com/monix/shade"),
+    url("https://github.com/monix/shade.git"),
     "scm:git@github.com:monix/shade.git"
   ))
 
