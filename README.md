@@ -1,7 +1,6 @@
 # Shade - Memcached Client for Scala
 
 [![Build Status](https://travis-ci.org/monix/shade.svg?branch=master)](https://travis-ci.org/monix/shade)
-[![Coverage Status](https://coveralls.io/repos/monix/shade/badge.svg?branch=master&service=github)](https://coveralls.io/github/alexandru/shade?branch=master)
 [![Join the chat at https://gitter.im/monix/shade](https://badges.gitter.im/monix/shade.svg)](https://gitter.im/monix/shade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Overview
