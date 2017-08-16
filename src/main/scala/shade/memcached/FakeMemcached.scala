@@ -12,6 +12,7 @@
 package shade.memcached
 
 import monix.execution.CancelableFuture
+import net.spy.memcached.CachedData
 import shade.UnhandledStatusException
 import shade.inmemory.InMemoryCache
 
@@ -26,7 +27,7 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
       case null =>
         CancelableFuture.successful(false)
       case _ =>
-        CancelableFuture.successful(cache.add(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.add[CachedData](key, codec.encode(value), exp))
     }
 
   def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
@@ -34,52 +35,48 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
       case null =>
         CancelableFuture.successful(())
       case _ =>
-        CancelableFuture.successful(cache.set(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.set[CachedData](key, codec.encode(value), exp))
     }
 
   def delete(key: String): CancelableFuture[Boolean] =
     CancelableFuture.successful(cache.delete(key))
 
   def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
-    Future.successful(cache.get[Seq[Byte]](key)).map(_.map(x => codec.deserialize(x.toArray)))
+    Future.successful(cache.get[CachedData](key).map(codec.decode))
 
   def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
-    Future.successful(cache.compareAndSet(key, expecting.map(x => codec.serialize(x).toSeq), codec.serialize(newValue).toSeq, exp))
+    Future.successful {
+      val current = cache.get[CachedData](key)
+      if (current.map(codec.decode) == expecting) {
+        cache.set(key, codec.encode(newValue), exp)
+        true
+      } else {
+        false
+      }
+    }
 
   def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] =
-    Future.successful(cache.transformAndGet[Seq[Byte]](key: String, exp) { current =>
-      val cValue = current.map(x => codec.deserialize(x.toArray))
-      val update = cb(cValue)
-      codec.serialize(update).toSeq
-    }) map { update =>
-      codec.deserialize(update.toArray)
-    }
+    Future.successful(cache.transformAndGet[CachedData](key, exp)(o => codec.encode(cb(o.map(codec.decode))))).map(codec.decode)
 
   def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[Option[T]] =
-    Future.successful(cache.getAndTransform[Seq[Byte]](key: String, exp) { current =>
-      val cValue = current.map(x => codec.deserialize(x.toArray))
-      val update = cb(cValue)
-      codec.serialize(update).toSeq
-    }) map { update =>
-      update.map(x => codec.deserialize(x.toArray))
-    }
+    Future.successful(cache.getAndTransform[CachedData](key: String, exp)(o => codec.encode(cb(o.map(codec.decode))))).map(c => c.map(codec.decode))
 
   def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
-    def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
-    Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => (toBigInt(current) + by).toString.getBytes
-      case None if default.isDefined => default.get.toString.getBytes
+    def toBigInt(bytes: Array[Byte]): BigInt = BigInt(new String(bytes))
+    Future.successful(cache.transformAndGet[CachedData](key, exp) {
+      case Some(current) => new CachedData(0, (toBigInt(current.getData) + by).toString.getBytes, Int.MaxValue)
+      case None if default.isDefined => new CachedData(0, default.get.toString.getBytes, Int.MaxValue)
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
-    }).map(toBigInt).map(_.toLong)
+    }).map(c => toBigInt(c.getData)).map(_.toLong)
   }
 
   def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
-    def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
-    Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => (toBigInt(current) - by).max(0).toString.getBytes
-      case None if default.isDefined => default.get.toString.getBytes
+    def toBigInt(bytes: Array[Byte]): BigInt = BigInt(new String(bytes))
+    Future.successful(cache.transformAndGet[CachedData](key, exp) {
+      case Some(current) => new CachedData(0, (toBigInt(current.getData) - by).max(0).toString.getBytes, Int.MaxValue)
+      case None if default.isDefined => new CachedData(0, default.get.toString.getBytes, Int.MaxValue)
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
-    }).map(toBigInt).map(_.toLong)
+    }).map(c => toBigInt(c.getData)).map(_.toLong)
   }
 
   def close(): Unit = {

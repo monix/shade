@@ -16,7 +16,7 @@ import shade.memcached._
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
 
-trait MemcachedTestHelpers extends MemcachedCodecs {
+trait MemcachedTestHelpers extends DefaultCodecs {
   val defaultConfig = Configuration(
     addresses = "127.0.0.1:11211",
     authentication = None,

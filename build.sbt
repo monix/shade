@@ -1,13 +1,11 @@
 name := "shade"
-
-version := "1.9.5"
-
 organization := "io.monix"
 
+addCommandAlias("ci",  ";clean ;compile ;test ;package")
+addCommandAlias("release", ";+publishSigned ;sonatypeReleaseAll")
+
 scalaVersion := "2.11.11"
-
-crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2")
-
+crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.3")
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
 scalacOptions ++= {
@@ -56,9 +54,7 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
 scalacOptions in (Compile, doc) ~= (_ filterNot (_ == "-Xfatal-warnings"))
 
 resolvers ++= Seq(
-  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
-  "Spy" at "http://files.couchbase.com/maven2/",
-  Resolver.sonatypeRepo("snapshots")
+  "Spy" at "http://files.couchbase.com/maven2/"
 )
 
 libraryDependencies ++= Seq(
@@ -72,47 +68,76 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += ("org.scala-lang" % "scala-reflect" % scalaVersion.value % "compile")
 
-// -- Settings meant for deployment on oss.sonatype.org
+//------------- For Release
 
-useGpg := true
-useGpgAgent := true
+useGpg := false
 usePgpKeyHex("2673B174C4071B0E")
+pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg"
+pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg"
+pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray)
+
+enablePlugins(GitVersioning)
+
+/* The BaseVersion setting represents the in-development (upcoming) version,
+ * as an alternative to SNAPSHOTS.
+ */
+git.baseVersion := "1.11.0"
+
+val ReleaseTag = """^v([\d\.]+)$""".r
+git.gitTagToVersionNumber := {
+  case ReleaseTag(v) => Some(v)
+  case _ => None
+}
+
+git.formattedShaVersion := {
+  val suffix = git.makeUncommittedSignifierSuffix(git.gitUncommittedChanges.value, git.uncommittedSignifier.value)
+
+  git.gitHeadCommit.value map { _.substring(0, 7) } map { sha =>
+    git.baseVersion.value + "-" + sha + suffix
+  }
+}
+
+sonatypeProfileName := organization.value
+
+credentials += Credentials(
+  "Sonatype Nexus Repository Manager",
+  "oss.sonatype.org",
+  sys.env.getOrElse("SONATYPE_USER", ""),
+  sys.env.getOrElse("SONATYPE_PASS", "")
+)
 
 publishMavenStyle := true
 
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
+isSnapshot := version.value endsWith "SNAPSHOT"
+
+publishTo := Some(
   if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
+    Opts.resolver.sonatypeSnapshots
   else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
+    Opts.resolver.sonatypeStaging
+)
 
 publishArtifact in Test := false
 pomIncludeRepository := { _ => false } // removes optional dependencies
 
 scalariformSettings
 
-pomExtra in ThisBuild :=
-  <url>https://github.com/monix/shade</url>
-  <licenses>
-    <license>
-      <name>The MIT License</name>
-      <url>http://opensource.org/licenses/MIT</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <url>git@github.com:monix/shade.git</url>
-    <connection>scm:git:git@github.com:monix/shade.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>alex_ndc</id>
-      <name>Alexandru Nedelcu</name>
-      <url>https://alexn.org</url>
-    </developer>
-  </developers>
+licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+homepage := Some(url("https://github.com/monix/shade"))
+
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/monix/shade.git"),
+    "scm:git@github.com:monix/shade.git"
+  ))
+
+developers := List(
+  Developer(
+    id="alexelcu",
+    name="Alexandru Nedelcu",
+    email="noreply@alexn.org",
+    url=url("https://alexn.org")
+  ))
 
 // Multi-project-related
 

@@ -9,22 +9,21 @@
  * https://github.com/monix/shade/blob/master/LICENSE.txt
  */
 
-package shade.tests
+package shade.memcached
 
 import org.scalacheck.Arbitrary
 import org.scalatest.FunSuite
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import shade.memcached.{ Codec, MemcachedCodecs }
 
-class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenPropertyChecks {
+class CodecsSuite extends FunSuite with DefaultCodecsLevel0 with DefaultCodecs with GeneratorDrivenPropertyChecks {
 
   /**
    * Properties-based checking for a codec of type A
    */
   private def serdesCheck[A: Arbitrary](codec: Codec[A]): Unit = {
     forAll { n: A =>
-      val serialised = codec.serialize(n)
-      val deserialised = codec.deserialize(serialised)
+      val serialised = codec.encode(n)
+      val deserialised = codec.decode(serialised)
       assert(deserialised == n)
     }
   }
@@ -46,7 +45,7 @@ class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenProp
   }
 
   test("BooleanBinaryCodec") {
-    serdesCheck(BooleanBinaryCodec)
+    serdesCheck(BooleanCodec)
   }
 
   test("CharBinaryCodec") {
@@ -62,7 +61,11 @@ class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenProp
   }
 
   test("ArrayByteBinaryCodec") {
-    serdesCheck(ArrayByteBinaryCodec)
+    serdesCheck(ArrayBinaryCodec)
+  }
+
+  test("ByteBinaryCodec") {
+    serdesCheck(ByteBinaryCodec)
   }
 
 }
