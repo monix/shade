@@ -22,6 +22,7 @@ Supported for Scala versions: 2.10, 2.11 and 2.12.
 
 ## Release Notes
 
+- [Version 1.10.x](release-notes/1.10.md)
 - [Version 1.9.x](release-notes/1.9.md)
 - [Version 1.8.x](release-notes/1.8.md)
 - [Version 1.7.x](release-notes/1.7.md)
@@ -37,7 +38,7 @@ These are the people maintaining this project that you can annoy:
 ## Usage From SBT
 
 ```scala
-dependencies += "io.monix" %% "shade" % "1.9.5"
+dependencies += "io.monix" %% "shade" % "1.10.0"
 ```
 
 ### Initializing the Memcached Client
