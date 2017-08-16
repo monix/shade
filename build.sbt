@@ -122,26 +122,22 @@ pomIncludeRepository := { _ => false } // removes optional dependencies
 
 scalariformSettings
 
-pomExtra in ThisBuild :=
-  <url>https://github.com/monix/shade</url>
-  <licenses>
-    <license>
-      <name>The MIT License</name>
-      <url>http://opensource.org/licenses/MIT</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <url>git@github.com:monix/shade.git</url>
-    <connection>scm:git:git@github.com:monix/shade.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>alexelcu</id>
-      <name>Alexandru Nedelcu</name>
-      <url>https://alexn.org</url>
-    </developer>
-  </developers>
+licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+homepage := Some(url("https://github.com/monix/shade"))
+
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/monix/shade"),
+    "scm:git@github.com:monix/shade.git"
+  ))
+
+developers := List(
+  Developer(
+    id="alexelcu",
+    name="Alexandru Nedelcu",
+    email="noreply@alexn.org",
+    url=url("https://alexn.org")
+  ))
 
 // Multi-project-related
 
