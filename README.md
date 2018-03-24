@@ -10,9 +10,9 @@ Shade is a Memcached client based on the de-facto Java library
 
 The interface exposed is very Scala-ish, as you have a choice between
 making asynchronous calls, with results wrapped as Scala
-[Futures](http://docs.scala-lang.org/sips/pending/futures-promises.html),
+[Futures](http://docs.scala-lang.org/overviews/core/futures.html),
 or blocking calls. The performance is stellar as it benefits from the
-[optimizations that went into SpyMemcached](https://code.google.com/p/spymemcached/wiki/Optimizations)
+[optimizations that went into SpyMemcached](https://web.archive.org/web/20140914202520/https://code.google.com/p/spymemcached/wiki/Optimizations)
 over the years. Shade also fixes some problems with SpyMemcached's
 architecture, choices that made sense in the context of Java, but
 don't make so much sense in the context of Scala (TODO: add details).
