@@ -48,7 +48,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       case null =>
         CancelableFuture.successful(false)
       case _ =>
-        instance.realAsyncAdd(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
+        instance.realAsyncAdd(withPrefix(key), codec.encode(value), exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, Some(_)) =>
             true
           case SuccessfulResult(givenKey, None) =>
@@ -68,7 +68,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       case null =>
         CancelableFuture.successful(())
       case _ =>
-        instance.realAsyncSet(withPrefix(key), codec.serialize(value), 0, exp, config.operationTimeout) map {
+        instance.realAsyncSet(withPrefix(key), codec.encode(value), exp, config.operationTimeout) map {
           case SuccessfulResult(givenKey, _) =>
             ()
           case failure: FailedResult =>
@@ -97,7 +97,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
   def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
     instance.realAsyncGet(withPrefix(key), config.operationTimeout) map {
       case SuccessfulResult(givenKey, option) =>
-        option.map(codec.deserialize)
+        option.map(codec.decode)
       case failure: FailedResult =>
         throwExceptionOn(failure)
     }
@@ -126,8 +126,8 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
             Future.successful(false)
 
           case SuccessfulResult(givenKey, Some((currentData, casID))) =>
-            if (codec.deserialize(currentData) == expectingValue)
-              instance.realAsyncCAS(withPrefix(key), casID, 0, codec.serialize(newValue), exp, config.operationTimeout) map {
+            if (codec.decode(currentData) == expectingValue)
+              instance.realAsyncCAS(withPrefix(key), casID, codec.encode(newValue), exp, config.operationTimeout) map {
                 case SuccessfulResult(_, bool) =>
                   bool
                 case failure: FailedResult =>
@@ -172,10 +172,10 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
               loop(retry + 1)
           }
         case SuccessfulResult(_, Some((current, casID))) =>
-          val currentOpt = Some(codec.deserialize(current))
+          val currentOpt = Some(codec.decode(current))
           val result = cb(currentOpt)
 
-          instance.realAsyncCAS(keyWithPrefix, casID, 0, codec.serialize(result), exp, remainingTime.millis) flatMap {
+          instance.realAsyncCAS(keyWithPrefix, casID, codec.encode(result), exp, remainingTime.millis) flatMap {
             case SuccessfulResult(_, true) =>
               Future.successful(f(currentOpt, result))
             case SuccessfulResult(_, false) =>

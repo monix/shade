@@ -178,9 +178,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     }
   }
 
-  def realAsyncGet(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[Array[Byte]]]] = {
-    val promise = Promise[Result[Option[Array[Byte]]]]()
-    val result = new MutablePartialResult[Option[Array[Byte]]]
+  def realAsyncGet(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[CachedData]]] = {
+    val promise = Promise[Result[Option[CachedData]]]()
+    val result = new MutablePartialResult[Option[CachedData]]
 
     val op: GetOperation = opFact.get(key, new GetOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
@@ -193,7 +193,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
 
       def gotData(k: String, flags: Int, data: Array[Byte]) {
         assert(key == k, "Wrong key returned")
-        result.tryComplete(Success(SuccessfulResult(key, Option(data))))
+        result.tryComplete(Success(SuccessfulResult(key, Option(new CachedData(flags, data, data.length)))))
       }
 
       def complete() {
@@ -205,11 +205,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncSet(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Long]] = {
+  def realAsyncSet(key: String, cachedData: CachedData, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Long]] = {
     val promise = Promise[Result[Long]]()
     val result = new MutablePartialResult[Long]
 
-    val op: Operation = opFact.store(StoreType.set, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
+    val op: Operation = opFact.store(StoreType.set, key, cachedData.getFlags, expiryToSeconds(exp).toInt, cachedData.getData, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
@@ -229,11 +229,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncAdd(key: String, data: Array[Byte], flags: Int, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[Long]]] = {
+  def realAsyncAdd(key: String, cachedData: CachedData, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[Long]]] = {
     val promise = Promise[Result[Option[Long]]]()
     val result = new MutablePartialResult[Option[Long]]
 
-    val op: Operation = opFact.store(StoreType.add, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
+    val op: Operation = opFact.store(StoreType.add, key, cachedData.getFlags, expiryToSeconds(exp).toInt, cachedData.getData, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASExistsStatus =>
@@ -280,9 +280,9 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncGets(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[(Array[Byte], Long)]]] = {
-    val promise = Promise[Result[Option[(Array[Byte], Long)]]]()
-    val result = new MutablePartialResult[Option[(Array[Byte], Long)]]
+  def realAsyncGets(key: String, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Option[(CachedData, Long)]]] = {
+    val promise = Promise[Result[Option[(CachedData, Long)]]]()
+    val result = new MutablePartialResult[Option[(CachedData, Long)]]
 
     val op: Operation = opFact.gets(key, new GetsOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
@@ -298,7 +298,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         assert(cas > 0, s"CAS was less than zero:  $cas")
 
         result.tryComplete(Try {
-          SuccessfulResult(key, Option(data).map(d => (d, cas)))
+          SuccessfulResult(key, Option(data).map(d => (new CachedData(flags, data, data.length), cas)))
         })
       }
 
@@ -311,11 +311,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     prepareFuture(key, op, promise, timeout)
   }
 
-  def realAsyncCAS(key: String, casID: Long, flags: Int, data: Array[Byte], exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Boolean]] = {
+  def realAsyncCAS(key: String, casID: Long, cachedData: CachedData, exp: Duration, timeout: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[Boolean]] = {
     val promise = Promise[Result[Boolean]]()
     val result = new MutablePartialResult[Boolean]
 
-    val op = opFact.cas(StoreType.set, key, casID, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
+    val op = opFact.cas(StoreType.set, key, casID, cachedData.getFlags, expiryToSeconds(exp).toInt, cachedData.getData, new StoreOperation.Callback {
       def receivedStatus(opStatus: OperationStatus) {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
