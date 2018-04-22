@@ -21,47 +21,47 @@ import scala.concurrent.{ ExecutionContext, Future }
 class FakeMemcached(context: ExecutionContext) extends Memcached {
   private[this] implicit val ec = context
 
-  def add[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
+  def add[T](key: String, value: T, flags: Int, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Boolean] =
     value match {
       case null =>
         CancelableFuture.successful(false)
       case _ =>
-        CancelableFuture.successful(cache.add(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.add(key, codec.serialize(value, flags).toSeq, exp))
     }
 
-  def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
+  def set[T](key: String, value: T, flags: Int, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit] =
     value match {
       case null =>
         CancelableFuture.successful(())
       case _ =>
-        CancelableFuture.successful(cache.set(key, codec.serialize(value).toSeq, exp))
+        CancelableFuture.successful(cache.set(key, codec.serialize(value, flags).toSeq, exp))
     }
 
   def delete(key: String): CancelableFuture[Boolean] =
     CancelableFuture.successful(cache.delete(key))
 
   def get[T](key: String)(implicit codec: Codec[T]): Future[Option[T]] =
-    Future.successful(cache.get[Seq[Byte]](key)).map(_.map(x => codec.deserialize(x.toArray)))
+    Future.successful(cache.get[Seq[Byte]](key)).map(_.map(x => codec.deserialize(x.toArray, 0)))
 
-  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
-    Future.successful(cache.compareAndSet(key, expecting.map(x => codec.serialize(x).toSeq), codec.serialize(newValue).toSeq, exp))
+  def compareAndSet[T](key: String, expecting: Option[T], newValue: T, flags: Int, exp: Duration)(implicit codec: Codec[T]): Future[Boolean] =
+    Future.successful(cache.compareAndSet(key, expecting.map(x => codec.serialize(x, flags).toSeq), codec.serialize(newValue, flags).toSeq, exp))
 
   def transformAndGet[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[T] =
     Future.successful(cache.transformAndGet[Seq[Byte]](key: String, exp) { current =>
-      val cValue = current.map(x => codec.deserialize(x.toArray))
+      val cValue = current.map(x => codec.deserialize(x.toArray, 0))
       val update = cb(cValue)
-      codec.serialize(update).toSeq
+      codec.serialize(update, 0).toSeq
     }) map { update =>
-      codec.deserialize(update.toArray)
+      codec.deserialize(update.toArray, 0)
     }
 
   def getAndTransform[T](key: String, exp: Duration)(cb: (Option[T]) => T)(implicit codec: Codec[T]): Future[Option[T]] =
     Future.successful(cache.getAndTransform[Seq[Byte]](key: String, exp) { current =>
-      val cValue = current.map(x => codec.deserialize(x.toArray))
+      val cValue = current.map(x => codec.deserialize(x.toArray, 0))
       val update = cb(cValue)
-      codec.serialize(update).toSeq
+      codec.serialize(update, 0).toSeq
     }) map { update =>
-      update.map(x => codec.deserialize(x.toArray))
+      update.map(x => codec.deserialize(x.toArray, 0))
     }
 
   def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {

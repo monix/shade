@@ -25,13 +25,13 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
 
   test("add") {
     withFakeMemcached { cache =>
-      val op1 = cache.awaitAdd("hello", Value("world"), 5.seconds)
+      val op1 = cache.awaitAdd("hello", Value("world"), 0, 5.seconds)
       assert(op1 === true)
 
       val stored = cache.awaitGet[Value]("hello")
       assert(stored === Some(Value("world")))
 
-      val op2 = cache.awaitAdd("hello", Value("changed"), 5.seconds)
+      val op2 = cache.awaitAdd("hello", Value("changed"), 0, 5.seconds)
       assert(op2 === false)
 
       val changed = cache.awaitGet[Value]("hello")
@@ -41,7 +41,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
 
   test("add-null") {
     withFakeMemcached { cache =>
-      val op1 = cache.awaitAdd("hello", null, 5.seconds)
+      val op1 = cache.awaitAdd("hello", null, 0, 5.seconds)
       assert(op1 === false)
 
       val stored = cache.awaitGet[Value]("hello")
@@ -60,10 +60,10 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     withFakeMemcached { cache =>
       assert(cache.awaitGet[Value]("hello") === None)
 
-      cache.awaitSet("hello", Value("world"), 3.seconds)
+      cache.awaitSet("hello", Value("world"), 0, 3.seconds)
       assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
 
-      cache.awaitSet("hello", Value("changed"), 3.seconds)
+      cache.awaitSet("hello", Value("changed"), 0, 3.seconds)
       assert(cache.awaitGet[Value]("hello") === Some(Value("changed")))
 
       Thread.sleep(3000)
@@ -74,7 +74,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
 
   test("set-null") {
     withFakeMemcached { cache =>
-      val op1 = cache.awaitAdd("hello", null, 5.seconds)
+      val op1 = cache.awaitAdd("hello", null, 0, 5.seconds)
       assert(op1 === false)
 
       val stored = cache.awaitGet[Value]("hello")
@@ -87,7 +87,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
       cache.awaitDelete("hello")
       assert(cache.awaitGet[Value]("hello") === None)
 
-      cache.awaitSet("hello", Value("world"), 1.minute)
+      cache.awaitSet("hello", Value("world"), 0, 1.minute)
       assert(cache.awaitGet[Value]("hello") === Some(Value("world")))
 
       assert(cache.awaitDelete("hello") === true)
@@ -103,27 +103,27 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // no can do
-      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 0, 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === None)
 
       // set to value1
-      assert(Await.result(cache.compareAndSet("some-key", None, Value("value1"), 5.seconds), Duration.Inf) === true)
+      assert(Await.result(cache.compareAndSet("some-key", None, Value("value1"), 0, 5.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // no can do
-      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 0, 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value1")))
 
       // set to value2, from value1
-      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value1")), Value("value2"), 15.seconds), Duration.Inf) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value1")), Value("value2"), 0, 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // no can do
-      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 15.seconds), Duration.Inf) === false)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("invalid")), Value("value1"), 0, 15.seconds), Duration.Inf) === false)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value2")))
 
       // set to value3, from value2
-      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value2")), Value("value3"), 15.seconds), Duration.Inf) === true)
+      assert(Await.result(cache.compareAndSet("some-key", Some(Value("value2")), Value("value3"), 0, 15.seconds), Duration.Inf) === true)
       assert(cache.awaitGet[Value]("some-key") === Some(Value("value3")))
     }
   }
@@ -211,7 +211,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     withFakeMemcached { cache =>
       assert(cache.awaitGet[Int]("hello") === None)
 
-      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      cache.awaitSet("hello", "123", 0, 1.second)(StringBinaryCodec)
       assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
 
       cache.awaitIncrement("hello", 1, None, 1.second)
@@ -230,7 +230,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     withFakeMemcached { cache =>
       assert(cache.awaitGet[Int]("hello") === None)
 
-      cache.awaitSet("hello", "123", 1.second)(StringBinaryCodec)
+      cache.awaitSet("hello", "123", 0, 1.second)(StringBinaryCodec)
       assert(cache.awaitGet[String]("hello")(StringBinaryCodec) === Some("123"))
 
       cache.awaitIncrement("hello", 5, None, 1.second)
@@ -286,7 +286,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-1") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
-      cache.awaitSet(impression.uuid, impression, 60.seconds)
+      cache.awaitSet(impression.uuid, impression, 0, 60.seconds)
       assert(cache.awaitGet[Impression](impression.uuid) === Some(impression))
     }
   }
@@ -300,7 +300,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
       objectOut.writeObject(impression)
       val byteArray = byteOut.toByteArray
 
-      cache.awaitSet(impression.uuid, byteArray, 60.seconds)
+      cache.awaitSet(impression.uuid, byteArray, 0, 60.seconds)
 
       val inBytes = cache.awaitGet[Array[Byte]](impression.uuid)
       assert(inBytes.isDefined)
@@ -311,7 +311,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-2") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance2
-      cache.awaitSet(impression.uuid, impression, 60.seconds)
+      cache.awaitSet(impression.uuid, impression, 0, 60.seconds)
       assert(cache.awaitGet[Impression](impression.uuid) === Some(impression))
     }
   }
@@ -319,7 +319,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
   test("big-instance-3") {
     withFakeMemcached { cache =>
       val impression = shade.testModels.bigInstance
-      val result = cache.set(impression.uuid, impression, 60.seconds) flatMap { _ =>
+      val result = cache.set(impression.uuid, impression, 0, 60.seconds) flatMap { _ =>
         cache.get[Impression](impression.uuid)
       }
 
@@ -331,7 +331,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
     withFakeMemcached { cache =>
       Thread.sleep(100)
       val impression = shade.testModels.bigInstance2
-      cache.awaitSet(impression.uuid, impression, 60.seconds)
+      cache.awaitSet(impression.uuid, impression, 0, 60.seconds)
       assert(cache.awaitGet[Impression](impression.uuid) === Some(impression))
     }
   }
