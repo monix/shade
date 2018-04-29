@@ -201,7 +201,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -225,7 +224,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -251,7 +249,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -276,7 +273,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -307,7 +303,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -336,7 +331,6 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
@@ -362,11 +356,17 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
       }
     })
 
-    mconn.enqueueOperation(key, op)
     prepareFuture(key, op, promise, timeout)
   }
 
   protected final def prepareFuture[T](key: String, op: Operation, promise: Promise[Result[T]], atMost: FiniteDuration)(implicit ec: ExecutionContext): CancelableFuture[Result[T]] = {
+    try {
+      mconn.enqueueOperation(key, op)
+    } catch {
+      // enqueueOperation can throw IllegalStateException when
+      // the queue is full (see #60)
+      case NonFatal(e) => promise.tryFailure(e)
+    }
     val operationCancelable = Cancelable(() => {
       try {
         if (!op.isCancelled)
