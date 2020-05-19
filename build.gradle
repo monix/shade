@@ -1,0 +1,77 @@
+// Gradle plugins
+buildscript {
+	repositories {
+		mavenLocal()	// to be able to develop/test our custom plugins
+		mavenCentral()	// for 3rd party plugins
+		maven {			// prezi's repositories
+			credentials {
+				username nexusUser
+				password nexusPassword
+			}
+			url "https://artifactory.prezi.com/plugins"
+		}
+		ivy {									// prezi's repositories
+			credentials {
+				username nexusUser
+				password nexusPassword
+			}
+			url "https://artifactory.prezi.com/prezi-scala-release-local"
+		}
+	}
+	dependencies {
+		classpath(
+			// Prezi plugins for gradle
+			[group: "com.prezi.scala.gradle", name: "gradle-scala-service-plugin", version: "[7.0, )"],	// Common plugin for Scala based backend services at Prezi
+		)
+	}
+}
+
+// General project properties
+group 'com.prezi'
+
+apply plugin: 'scala-library'
+
+// Project definition
+// ------------------
+
+// Repositories 
+repositories {
+	ivy {									// prezi's repositories
+		credentials {
+			username nexusUser
+			password nexusPassword
+		}
+		url "https://artifactory.prezi.com/prezi-scala-release-local"
+	}
+	mavenCentral()							// for 3rd party libraries
+}
+
+dependencies {
+	// Compile-time dependencies for the service
+	compile (
+		[group: "net.spy", name: "spymemcached", version: "2.12.3"],
+		[group: "org.slf4j", name: "slf4j-api", version: "1.7.23"],
+		scalaDependency ([group: "io.monix", name: "monix-eval", version: "3.2.1"]),
+	)
+
+	// Compile-time dependencies for the unit tests
+	testCompile (
+		[group: "junit", name: "junit", version: "4.12"],
+		[group: "ch.qos.logback", name: "logback-classic", version: "1.1.7"],
+		scalaDependency ([group: "org.scalatest", name: "scalatest", version: "3.1.2"]),
+		scalaDependency ([group: 'org.scalatestplus', name: 'scalatestplus-junit', version: '1.0.0-M2']),
+		scalaDependency ([group: 'org.scalatestplus', name: 'scalatestplus-scalacheck', version: '3.1.0.0-RC2']),
+		scalaDependency ([group: "org.scalacheck", name: "scalacheck", version: "1.14.3"]),
+	)
+}
+
+// scala compiler options
+tasks.withType(ScalaCompile) {
+	scalaCompileOptions.additionalParameters += ["-unchecked", "-deprecation", "-feature", "-Xfatal-warnings", "-encoding", "utf8"]
+}
+
+// specs2 console logging
+test {
+	testLogging.showStandardStreams = true
+	systemProperty "specs2.commandline", "console"
+}

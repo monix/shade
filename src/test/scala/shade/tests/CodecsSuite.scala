@@ -11,12 +11,15 @@
 
 package shade.tests
 
+import org.junit.runner.RunWith
 import org.scalacheck.Arbitrary
-import org.scalatest.FunSuite
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
-import shade.memcached.{ Codec, MemcachedCodecs }
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import shade.memcached.{Codec, MemcachedCodecs}
 
-class CodecsSuite extends FunSuite with MemcachedCodecs with GeneratorDrivenPropertyChecks {
+@RunWith(classOf[JUnitRunner])
+class CodecsSuite extends AnyFunSuite with MemcachedCodecs with ScalaCheckDrivenPropertyChecks {
 
   /**
    * Properties-based checking for a codec of type A

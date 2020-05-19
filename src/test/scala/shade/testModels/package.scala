@@ -72,7 +72,7 @@ package object testModels {
           None
         ),
 
-        ArrayBuffer("viewnow"),
+        ArrayBuffer("viewnow").toSeq,
 
         "http://something.com/track?clickID=242323&pubID=982345&something=219&subID=something",
         None,

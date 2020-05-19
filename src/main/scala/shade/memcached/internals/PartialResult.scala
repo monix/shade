@@ -33,7 +33,7 @@ final class MutablePartialResult[T] {
       case FinishedResult(result) =>
         promise.tryComplete(result)
       case FutureResult(result) =>
-        promise.tryCompleteWith(result)
+        promise.completeWith(result)
       case NoResultAvailable =>
         promise.tryComplete(Success(FailedResult(key, IllegalCompleteStatus)))
     }

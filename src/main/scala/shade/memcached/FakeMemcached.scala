@@ -15,8 +15,9 @@ import monix.execution.CancelableFuture
 import shade.UnhandledStatusException
 import shade.inmemory.InMemoryCache
 
+import scala.collection.immutable.ArraySeq
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class FakeMemcached(context: ExecutionContext) extends Memcached {
   private[this] implicit val ec = context
@@ -67,8 +68,8 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
   def increment(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
     def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
     Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => (toBigInt(current) + by).toString.getBytes
-      case None if default.isDefined => default.get.toString.getBytes
+      case Some(current) => ArraySeq.unsafeWrapArray((toBigInt(current) + by).toString.getBytes)
+      case None if default.isDefined => ArraySeq.unsafeWrapArray(default.get.toString.getBytes)
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
     }).map(toBigInt).map(_.toLong)
   }
@@ -76,8 +77,8 @@ class FakeMemcached(context: ExecutionContext) extends Memcached {
   def decrement(key: String, by: Long, default: Option[Long], exp: Duration): Future[Long] = {
     def toBigInt(bytes: Seq[Byte]): BigInt = BigInt(new String(bytes.toArray))
     Future.successful(cache.transformAndGet[Seq[Byte]](key, exp) {
-      case Some(current) => (toBigInt(current) - by).max(0).toString.getBytes
-      case None if default.isDefined => default.get.toString.getBytes
+      case Some(current) => ArraySeq.unsafeWrapArray((toBigInt(current) - by).max(0).toString.getBytes)
+      case None if default.isDefined => ArraySeq.unsafeWrapArray(default.get.toString.getBytes)
       case None => throw new UnhandledStatusException(s"For key $key - CASNotFoundStatus")
     }).map(toBigInt).map(_.toLong)
   }

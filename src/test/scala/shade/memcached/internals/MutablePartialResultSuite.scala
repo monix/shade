@@ -11,14 +11,17 @@
 
 package shade.memcached.internals
 
-import org.scalatest.FunSuite
-import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
+import org.junit.runner.RunWith
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
 
-import scala.concurrent.{ Future, Promise }
+import scala.concurrent.{Future, Promise}
 import scala.util.Success
 
+@RunWith(classOf[JUnitRunner])
 class MutablePartialResultSuite
-    extends FunSuite
+    extends AnyFunSuite
     with ScalaFutures
     with IntegrationPatience {
 

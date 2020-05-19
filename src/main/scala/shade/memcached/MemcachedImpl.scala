@@ -379,9 +379,9 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       withAuth
     }
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val addresses = AddrUtil.getAddresses(config.addresses).asScala
-    new SpyMemcachedIntegration(conn.build(), addresses, Scheduler(context))
+    new SpyMemcachedIntegration(conn.build(), addresses.toSeq, Scheduler(context))
   }
 }
 

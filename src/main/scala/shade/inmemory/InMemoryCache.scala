@@ -259,7 +259,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   }
 
   protected def getExpiryTS(expiry: Duration): Long =
-    if (expiry.isFinite())
+    if (expiry.isFinite)
       System.currentTimeMillis() + expiry.toMillis
     else
       System.currentTimeMillis() + 365.days.toMillis

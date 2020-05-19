@@ -11,14 +11,17 @@
 
 package shade.tests
 
-import org.scalatest.FunSuite
+import org.junit.runner.RunWith
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.junit.JUnitRunner
 import shade.inmemory.InMemoryCache
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
-class InMemoryCacheVer2Suite extends FunSuite {
+@RunWith(classOf[JUnitRunner])
+class InMemoryCacheVer2Suite extends AnyFunSuite {
   test("get(), set()") {
     withInstance { cache =>
       assert(cache.get[String]("hello") === None)
