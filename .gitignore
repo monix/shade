@@ -5,3 +5,5 @@ target/
 /.lib/
 project/target/
 build
+.gradle
+.metals
