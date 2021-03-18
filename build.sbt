@@ -4,8 +4,8 @@ organization := "io.monix"
 addCommandAlias("ci",  ";clean ;compile ;test ;package")
 addCommandAlias("release", ";+publishSigned ;sonatypeReleaseAll")
 
-scalaVersion := "2.11.11"
-crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.3")
+scalaVersion := "2.12.3"
+crossScalaVersions := Seq("2.11.11", "2.12.3", "2.13.5")
 compileOrder in ThisBuild := CompileOrder.JavaThenScala
 
 scalacOptions ++= {
@@ -16,8 +16,7 @@ scalacOptions ++= {
     "-deprecation", // emit warning for usages of deprecated APIs
     "-feature",     // emit warning usages of features that should be imported explicitly
     // possibly deprecated options
-    "-Ywarn-dead-code",
-    "-Ywarn-inaccessible"
+    "-Ywarn-dead-code"
   )
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, majorVersion)) if majorVersion >= 12 => baseOptions
@@ -33,7 +32,6 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
       "-Xlint:adapted-args", // warn if an argument list is modified to match the receiver
       "-Xlint:nullary-unit", // warn when nullary methods return Unit
       "-Xlint:inaccessible", // warn about inaccessible types in method signatures
-      "-Xlint:nullary-override", // warn when non-nullary `def f()' overrides nullary `def f'
       "-Xlint:infer-any", // warn when a type argument is inferred to be `Any`
       "-Xlint:missing-interpolator", // a string literal appears to be missing an interpolator id
       "-Xlint:doc-detached", // a ScalaDoc comment appears to be detached from its element
@@ -42,28 +40,39 @@ scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
       "-Xlint:poly-implicit-overload", // parameterized overloaded implicit methods are not visible as view bounds
       "-Xlint:option-implicit", // Option.apply used implicit view
       "-Xlint:delayedinit-select", // Selecting member of DelayedInit
-      "-Xlint:by-name-right-associative", // By-name parameter of right associative operator
       "-Xlint:package-object-classes", // Class or object defined in package object
-      "-Xlint:unsound-match" // Pattern match may not be typesafe
     )
   case _ =>
     Seq.empty
+})
+
+scalacOptions ++= (CrossVersion.partialVersion(scalaVersion.value) match {
+  case Some((2, majorVersion)) if majorVersion <= 12 =>
+    Seq(
+      "-Ywarn-inaccessible",
+      "-Xlint:nullary-override", // warn when non-nullary `def f()' overrides nullary `def f'
+      "-Xlint:by-name-right-associative", // By-name parameter of right associative operator
+      "-Xlint:unsound-match" // Pattern match may not be typesafe
+    )
+  case _ => Seq.empty
 })
 
 // Turning off fatal warnings for ScalaDoc, otherwise we can't release.
 scalacOptions in (Compile, doc) ~= (_ filterNot (_ == "-Xfatal-warnings"))
 
 resolvers ++= Seq(
-  "Spy" at "http://files.couchbase.com/maven2/"
+  ("Spy" at "http://files.couchbase.com/maven2/").withAllowInsecureProtocol(true)
 )
 
 libraryDependencies ++= Seq(
-  "net.spy"        %  "spymemcached"    % "2.12.3",
-  "org.slf4j"      %  "slf4j-api"       % "1.7.23",
-  "io.monix"       %% "monix-eval"      % "2.3.0",
-  "ch.qos.logback" %  "logback-classic" % "1.1.7"  % Test,
-  "org.scalatest"  %% "scalatest"       % "3.0.1"  % Test,
-  "org.scalacheck" %% "scalacheck"      % "1.13.4" % Test
+  "net.spy"           %  "spymemcached"       % "2.12.3",
+  "org.slf4j"         %  "slf4j-api"          % "1.7.30",
+  "io.monix"          %% "monix-eval"         % "3.3.0",
+  "ch.qos.logback"    %  "logback-classic"    % "1.2.3"  % Test,
+  "org.scalatest"     %% "scalatest"          % "3.2.6"  % Test,
+  "org.scalatest"     %% "scalatest-funsuite" % "3.2.6"  % Test,
+  "org.scalacheck"    %% "scalacheck"         % "1.15.2" % Test,
+  "org.scalatestplus" %% "scalacheck-1-14"    % "3.2.2.0" % Test
 )
 
 libraryDependencies += ("org.scala-lang" % "scala-reflect" % scalaVersion.value % "compile")
@@ -120,7 +129,7 @@ publishTo := Some(
 publishArtifact in Test := false
 pomIncludeRepository := { _ => false } // removes optional dependencies
 
-scalariformSettings
+scalariformSettings(true)
 
 licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
 homepage := Some(url("https://github.com/monix/shade"))

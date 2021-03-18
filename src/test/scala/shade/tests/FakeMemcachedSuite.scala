@@ -13,14 +13,14 @@ package shade.tests
 
 import java.io.{ ByteArrayOutputStream, ObjectOutputStream }
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import shade.testModels.Impression
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
+class FakeMemcachedSuite extends AnyFunSuite with MemcachedTestHelpers {
   implicit val timeout = 5.second
 
   test("add") {
@@ -158,8 +158,7 @@ class FakeMemcachedSuite extends FunSuite with MemcachedTestHelpers {
           case None => 1
           case Some(nr) => nr + 1
         },
-        Duration.Inf
-      )
+        Duration.Inf)
 
       assert(incrementValue === None)
       assert(incrementValue === Some(1))

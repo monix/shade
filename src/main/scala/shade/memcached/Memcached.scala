@@ -40,7 +40,7 @@ trait Memcached extends java.io.Closeable {
    */
   def set[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): CancelableFuture[Unit]
 
-  def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]) {
+  def awaitSet[T](key: String, value: T, exp: Duration)(implicit codec: Codec[T]): Unit = {
     Await.result(set(key, value, exp), Duration.Inf)
   }
 

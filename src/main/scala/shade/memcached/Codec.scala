@@ -37,8 +37,7 @@ trait BaseCodecs {
         (value >>> 24).asInstanceOf[Byte],
         (value >>> 16).asInstanceOf[Byte],
         (value >>> 8).asInstanceOf[Byte],
-        value.asInstanceOf[Byte]
-      )
+        value.asInstanceOf[Byte])
 
     def deserialize(data: Array[Byte]): Int =
       (data(0).asInstanceOf[Int] & 255) << 24 |
@@ -83,8 +82,7 @@ trait BaseCodecs {
         (value >>> 24).asInstanceOf[Byte],
         (value >>> 16).asInstanceOf[Byte],
         (value >>> 8).asInstanceOf[Byte],
-        value.asInstanceOf[Byte]
-      )
+        value.asInstanceOf[Byte])
 
     def deserialize(data: Array[Byte]): Long =
       (data(0).asInstanceOf[Long] & 255) << 56 |
@@ -108,8 +106,7 @@ trait BaseCodecs {
   implicit object CharBinaryCodec extends Codec[Char] {
     def serialize(value: Char): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
-      value.asInstanceOf[Byte]
-    )
+      value.asInstanceOf[Byte])
 
     def deserialize(data: Array[Byte]): Char =
       ((data(0).asInstanceOf[Int] & 255) << 8 |
@@ -120,8 +117,7 @@ trait BaseCodecs {
   implicit object ShortBinaryCodec extends Codec[Short] {
     def serialize(value: Short): Array[Byte] = Array(
       (value >>> 8).asInstanceOf[Byte],
-      value.asInstanceOf[Byte]
-    )
+      value.asInstanceOf[Byte])
 
     def deserialize(data: Array[Byte]): Short =
       ((data(0).asInstanceOf[Short] & 255) << 8 |
@@ -153,8 +149,8 @@ trait GenericCodec {
         }
 
     def serialize(value: S): Array[Byte] =
-      using (new ByteArrayOutputStream()) { buf =>
-        using (new ObjectOutputStream(buf)) { out =>
+      using(new ByteArrayOutputStream()) { buf =>
+        using(new ObjectOutputStream(buf)) { out =>
           out.writeObject(value)
           out.close()
           buf.toByteArray
@@ -162,9 +158,9 @@ trait GenericCodec {
       }
 
     def deserialize(data: Array[Byte]): S =
-      using (new ByteArrayInputStream(data)) { buf =>
+      using(new ByteArrayInputStream(data)) { buf =>
         val in = new GenericCodecObjectInputStream(classTag, buf)
-        using (in) { inp =>
+        using(in) { inp =>
           inp.readObject().asInstanceOf[S]
         }
       }

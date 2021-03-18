@@ -23,15 +23,13 @@ trait MemcachedTestHelpers extends MemcachedCodecs {
     keysPrefix = Some("my-tests"),
     protocol = Protocol.Binary,
     failureMode = FailureMode.Retry,
-    operationTimeout = 15.seconds
-  )
+    operationTimeout = 15.seconds)
 
   def createCacheObject(prefix: String, opTimeout: Option[FiniteDuration] = None, failureMode: Option[FailureMode.Value] = None, isFake: Boolean = false): Memcached = {
     val config = defaultConfig.copy(
       keysPrefix = defaultConfig.keysPrefix.map(s => s + "-" + prefix),
       failureMode = failureMode.getOrElse(defaultConfig.failureMode),
-      operationTimeout = opTimeout.getOrElse(defaultConfig.operationTimeout)
-    )
+      operationTimeout = opTimeout.getOrElse(defaultConfig.operationTimeout))
 
     Memcached(config)(global)
   }
