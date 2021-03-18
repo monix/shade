@@ -54,7 +54,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   private[this] val scheduler = Scheduler(ec)
 
   def get[T](key: String): Option[T] = {
-    val currentState = stateRef.get
+    val currentState = stateRef.get()
 
     currentState.values.get(key) match {
       case Some(value) if value.expiresAt > System.currentTimeMillis() =>
@@ -74,7 +74,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   def add[T](key: String, value: T, expiry: Duration = Duration.Inf): Boolean = {
     val ts = getExpiryTS(expiry)
     val currentTS = System.currentTimeMillis()
-    val currentState = stateRef.get
+    val currentState = stateRef.get()
 
     val itemExists = currentState.values.get(key) match {
       case Some(item) if item.expiresAt > currentTS =>
@@ -109,7 +109,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
   @tailrec
   def delete(key: String): Boolean = {
-    val currentState = stateRef.get
+    val currentState = stateRef.get()
 
     currentState.values.get(key) match {
       case Some(value) =>
@@ -127,7 +127,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
   @tailrec
   def cachedFuture[T](key: String, expiry: Duration = Duration.Inf)(cb: => Future[T]): Future[T] = {
-    val currentState = stateRef.get
+    val currentState = stateRef.get()
 
     val currentValue = currentState.values.get(key) match {
       case Some(value) if value.expiresAt > System.currentTimeMillis() =>
@@ -157,7 +157,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   }
 
   def compareAndSet[T](key: String, expected: Option[T], update: T, expiry: Duration): Boolean = {
-    val current = stateRef.get
+    val current = stateRef.get()
     val ts = getExpiryTS(expiry)
 
     val currentValue = current.values.get(key) match {
@@ -239,10 +239,10 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
 
   def size: Int = {
     val ts = System.currentTimeMillis()
-    stateRef.get.values.count(_._2.expiresAt <= ts)
+    stateRef.get().values.count(_._2.expiresAt <= ts)
   }
 
-  def realSize: Int = stateRef.get.values.size
+  def realSize: Int = stateRef.get().values.size
 
   /**
    * Future that completes when a maintenance window has run,
@@ -250,7 +250,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
    * @return
    */
   def maintenance: Future[Int] =
-    stateRef.get.maintenancePromise.future
+    stateRef.get().maintenancePromise.future
 
   def close(): Unit = {
     Try(task.cancel())
@@ -259,7 +259,7 @@ private[inmemory] final class InMemoryCacheImpl(implicit ec: ExecutionContext) e
   }
 
   protected def getExpiryTS(expiry: Duration): Long =
-    if (expiry.isFinite())
+    if (expiry.isFinite)
       System.currentTimeMillis() + expiry.toMillis
     else
       System.currentTimeMillis() + 365.days.toMillis

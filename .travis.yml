@@ -6,13 +6,13 @@ group: edge
 matrix:
   include:
     - jdk: oraclejdk8
-      scala: 2.10.6
-      env: COMMAND=ci PUBLISH=
-    - jdk: oraclejdk8
       scala: 2.11.11
       env: COMMAND=ci PUBLISH=
     - jdk: oraclejdk8
       scala: 2.12.3
+      env: COMMAND=ci PUBLISH=true
+    - jdk: oraclejdk8
+      scala: 2.13.5
       env: COMMAND=ci PUBLISH=true
 
 env:

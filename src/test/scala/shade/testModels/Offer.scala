@@ -14,26 +14,26 @@ package shade.testModels
 import java.util.UUID
 
 case class Offer(
-    id: Option[Int],
-    name: String,
+  id: Option[Int],
+  name: String,
 
-    advertiser: Advertiser,
-    offerType: String,
+  advertiser: Advertiser,
+  offerType: String,
 
-    liveDeal: LiveDealInfo,
-    creative: OfferCreative,
+  liveDeal: LiveDealInfo,
+  creative: OfferCreative,
 
-    deliveryMechanisms: Seq[String],
+  deliveryMechanisms: Seq[String],
 
-    servedURL: String,
-    realURL: Option[String],
+  servedURL: String,
+  realURL: Option[String],
 
-    // is_active and is_valid
-    isRunning: Boolean,
-    isDynamic: Boolean,
-    isGlobal: Boolean,
+  // is_active and is_valid
+  isRunning: Boolean,
+  isDynamic: Boolean,
+  isGlobal: Boolean,
 
-    countries: Seq[String]) {
+  countries: Seq[String]) {
 
   def uniqueToken = {
     val token = id.toString + "-" + advertiser.serviceID +

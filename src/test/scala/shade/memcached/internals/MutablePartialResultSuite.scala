@@ -11,16 +11,16 @@
 
 package shade.memcached.internals
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 
 import scala.concurrent.{ Future, Promise }
 import scala.util.Success
 
 class MutablePartialResultSuite
-    extends FunSuite
-    with ScalaFutures
-    with IntegrationPatience {
+  extends AnyFunSuite
+  with ScalaFutures
+  with IntegrationPatience {
 
   def assertCompletePromise(toCheck: MutablePartialResult[Boolean], expected: Boolean): Unit = {
     val promise = Promise[Result[Boolean]]()

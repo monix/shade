@@ -11,14 +11,14 @@
 
 package shade.tests
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import shade.inmemory.InMemoryCache
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{ Await, Future }
 
-class InMemoryCacheVer2Suite extends FunSuite {
+class InMemoryCacheVer2Suite extends AnyFunSuite {
   test("get(), set()") {
     withInstance { cache =>
       assert(cache.get[String]("hello") === None)

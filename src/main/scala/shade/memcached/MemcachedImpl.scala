@@ -300,8 +300,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       throw new CancelledException(withoutPrefix(k))
     case FailedResult(k, unhandled) =>
       throw new UnhandledStatusException(
-        s"For key ${withoutPrefix(k)} - ${unhandled.getClass.getName}"
-      )
+        s"For key ${withoutPrefix(k)} - ${unhandled.getClass.getName}")
   }
 
   @inline
@@ -324,8 +323,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
     if (System.getProperty("net.spy.log.LoggerImpl") == null) {
       System.setProperty(
         "net.spy.log.LoggerImpl",
-        "shade.memcached.internals.Slf4jLogger"
-      )
+        "shade.memcached.internals.Slf4jLogger")
     }
 
     val conn = {
@@ -334,8 +332,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
           if (config.protocol == Protocol.Binary)
             SpyProtocol.BINARY
           else
-            SpyProtocol.TEXT
-        )
+            SpyProtocol.TEXT)
         .setDaemon(true)
         .setFailureMode(config.failureMode match {
           case FailureMode.Retry =>
@@ -369,9 +366,7 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
           withTimeoutThreshold.setAuthDescriptor(
             new AuthDescriptor(
               Array("PLAIN"),
-              new PlainCallbackHandler(credentials.username, credentials.password)
-            )
-          )
+              new PlainCallbackHandler(credentials.username, credentials.password)))
         case None =>
           withTimeoutThreshold
       }
@@ -379,9 +374,9 @@ class MemcachedImpl(config: Configuration, ec: ExecutionContext) extends Memcach
       withAuth
     }
 
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val addresses = AddrUtil.getAddresses(config.addresses).asScala
-    new SpyMemcachedIntegration(conn.build(), addresses, Scheduler(context))
+    new SpyMemcachedIntegration(conn.build(), addresses.toSeq, Scheduler(context))
   }
 }
 

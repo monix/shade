@@ -29,11 +29,11 @@ final class MutablePartialResult[T] {
     _result.compareAndSet(NoResultAvailable, FutureResult(result))
 
   def completePromise(key: String, promise: Promise[Result[T]]): Unit = {
-    _result.get match {
+    _result.get() match {
       case FinishedResult(result) =>
         promise.tryComplete(result)
       case FutureResult(result) =>
-        promise.tryCompleteWith(result)
+        promise.completeWith(result)
       case NoResultAvailable =>
         promise.tryComplete(Success(FailedResult(key, IllegalCompleteStatus)))
     }

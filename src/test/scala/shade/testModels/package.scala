@@ -35,18 +35,14 @@ package object testModels {
             Some(703),
             None,
             Some("VA"),
-            Some(511)
-          )
-        )
-      ),
+            Some(511)))),
 
       Some("aac636be-e42b-01d6-449b-6a0c2e5e7b09"),
       Some("something-65"),
       Some("71.89.145.102"),
       None,
       None,
-      Some("us")
-    ),
+      Some("us")),
     List(
       Offer(
         Some(3352251),
@@ -54,38 +50,32 @@ package object testModels {
         Advertiser(
           Some(137),
           Some("something"),
-          "something"
-        ),
+          "something"),
         "cpa",
         LiveDealInfo(
           Some(""),
           None,
           None,
-          None
-        ),
+          None),
 
         OfferCreative(
           "So Many Dresses!",
           "Daily Deals For Moms, Babies and Kids. Up to 90% OFF! Shop Now!",
           Some("Something.com"),
           Some(""),
-          None
-        ),
+          None),
 
-        ArrayBuffer("viewnow"),
+        ArrayBuffer("viewnow").toSeq,
 
         "http://something.com/track?clickID=242323&pubID=982345&something=219&subID=something",
         None,
         true,
         false,
         false,
-        List("us")
-      )
-    ),
+        List("us"))),
     112,
     true,
-    Some("light-fullscreen")
-  )
+    Some("light-fullscreen"))
 
   val bigInstance2 = Impression(
     "96298b14-1e13-a162-662b-969bd3b41ca4",
@@ -108,23 +98,18 @@ package object testModels {
             Some(703),
             None,
             Some("VA"),
-            Some(511)
-          )
-        )
-      ),
+            Some(511)))),
 
       Some("aac636be-e42b-01d6-449b-6a0c2e5e7b09"),
       Some("something-65"),
       Some("71.89.145.102"),
       None,
       None,
-      Some("us")
-    ),
+      Some("us")),
     List.empty,
     112,
     true,
-    Some("light-fullscreen")
-  )
+    Some("light-fullscreen"))
 
   val contentSeq = Vector(
     ContentPiece.Article(
@@ -136,8 +121,7 @@ package object testModels {
       excerptHtml = "<b>Hello world</b>",
       contentHtml = Some("<h1>Sample</h1><b>Hello world</b>"),
       source = ContentSource.WordPress,
-      tags = Vector("auto", "hello")
-    ),
+      tags = Vector("auto", "hello")),
     ContentPiece.Image(
       id = Some(2),
       url = "http://google.com/",
@@ -145,15 +129,12 @@ package object testModels {
       photo = "http://google.com/image.png",
       title = Some("Image"),
       source = ContentSource.Tumblr,
-      tags = Vector("google", "image")
-    ),
+      tags = Vector("google", "image")),
     ContentPiece.Title(
       id = Some(3),
       url = "http://google.com/3",
       title = "Hello Title",
       creator = "alex",
       source = ContentSource.Tumblr,
-      tags = Vector("title", "hello")
-    )
-  )
+      tags = Vector("title", "hello")))
 }

@@ -23,7 +23,7 @@ import net.spy.memcached.compat.SpyObject
 import net.spy.memcached.ops._
 import shade.UnhandledStatusException
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Promise }
 import scala.util.control.NonFatal
@@ -37,7 +37,7 @@ import scala.util.{ Failure, Success, Try }
  * @param scheduler is for making timeouts work
  */
 class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddress], scheduler: Scheduler)
-    extends SpyObject with ConnectionObserver {
+  extends SpyObject with ConnectionObserver {
 
   require(cf != null, "Invalid connection factory")
   require(addrs != null && addrs.nonEmpty, "Invalid addresses list")
@@ -67,7 +67,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val rv = mconn.addObserver(obs)
 
     if (rv)
-      for (node <- mconn.getLocator.getAll.asScala)
+      for (node <- mconn.getLocator.getAll().asScala)
         if (node.isActive)
           obs.connectionEstablished(node.getSocketAddress, -1)
     rv
@@ -105,11 +105,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val blatch: CountDownLatch = broadcastOp(new BroadcastOpFactory {
       def newOp(n: MemcachedNode, latch: CountDownLatch): Operation = {
         opFact.noop(new OperationCallback {
-          def complete() {
+          def complete(): Unit = {
             latch.countDown()
           }
 
-          def receivedStatus(s: OperationStatus) {}
+          def receivedStatus(s: OperationStatus): Unit = {}
         })
       }
     }, mconn.getLocator.getAll, checkShuttingDown = false)
@@ -132,13 +132,13 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
    * Broadcast an operation to a specific collection of nodes.
    */
   private def broadcastOp(of: BroadcastOpFactory, nodes: java.util.Collection[MemcachedNode], checkShuttingDown: Boolean): CountDownLatch = {
-    if (checkShuttingDown && shuttingDown.get)
+    if (checkShuttingDown && shuttingDown.get())
       throw new IllegalStateException("Shutting down")
     mconn.broadcastOperation(of, nodes)
   }
 
   private def findNode(sa: SocketAddress): MemcachedNode = {
-    val node = mconn.getLocator.getAll.asScala.find(_.getSocketAddress == sa)
+    val node = mconn.getLocator.getAll().asScala.find(_.getSocketAddress == sa)
     assert(node.isDefined, s"Couldn't find node connected to $sa")
     node.get
   }
@@ -153,7 +153,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
   def shutdown(timeout: Long, unit: TimeUnit): Boolean = {
     // Guard against double shutdowns (bug 8).
     if (!shuttingDown.compareAndSet(expect = false, update = true)) {
-      getLogger.info("Suppressing duplicate attempt to shut down")
+      getLogger.info("Suppressing duplicate attempt to shut down", Nil)
       false
     } else {
       val baseName: String = mconn.getName
@@ -183,7 +183,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Option[Array[Byte]]]
 
     val op: GetOperation = opFact.get(key, new GetOperation.Callback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASNotFoundStatus =>
             result.tryComplete(Success(SuccessfulResult(key, None)))
@@ -191,12 +191,12 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
       }
 
-      def gotData(k: String, flags: Int, data: Array[Byte]) {
+      def gotData(k: String, flags: Int, data: Array[Byte]): Unit = {
         assert(key == k, "Wrong key returned")
         result.tryComplete(Success(SuccessfulResult(key, Option(data))))
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
@@ -210,17 +210,17 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Long]
 
     val op: Operation = opFact.store(StoreType.set, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
         }
       }
 
-      def gotData(key: String, cas: Long) {
+      def gotData(key: String, cas: Long): Unit = {
         result.tryComplete(Success(SuccessfulResult(key, cas)))
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
@@ -234,7 +234,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Option[Long]]
 
     val op: Operation = opFact.store(StoreType.add, key, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASExistsStatus =>
             result.tryComplete(Success(SuccessfulResult(key, None)))
@@ -242,11 +242,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
       }
 
-      def gotData(key: String, cas: Long) {
+      def gotData(key: String, cas: Long): Unit = {
         result.tryComplete(Success(SuccessfulResult(key, Some(cas))))
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
@@ -262,11 +262,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val op = opFact.delete(key, new DeleteOperation.Callback {
       def gotData(cas: Long): Unit = ()
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
 
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
             result.tryComplete(Success(SuccessfulResult(key, true)))
@@ -285,7 +285,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Option[(Array[Byte], Long)]]
 
     val op: Operation = opFact.gets(key, new GetsOperation.Callback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASNotFoundStatus =>
             result.tryComplete(Success(SuccessfulResult(key, None)))
@@ -293,7 +293,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
       }
 
-      def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]) {
+      def gotData(receivedKey: String, flags: Int, cas: Long, data: Array[Byte]): Unit = {
         assert(key == receivedKey, "Wrong key returned")
         assert(cas > 0, s"CAS was less than zero:  $cas")
 
@@ -302,7 +302,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         })
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
@@ -316,7 +316,7 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     val result = new MutablePartialResult[Boolean]
 
     val op = opFact.cas(StoreType.set, key, casID, flags, expiryToSeconds(exp).toInt, data, new StoreOperation.Callback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
             result.tryComplete(Success(SuccessfulResult(key, true)))
@@ -327,11 +327,11 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
         }
       }
 
-      def gotData(k: String, cas: Long) {
+      def gotData(k: String, cas: Long): Unit = {
         assert(key == k, "Wrong key returned")
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
@@ -350,14 +350,14 @@ class SpyMemcachedIntegration(cf: ConnectionFactory, addrs: Seq[InetSocketAddres
     }
 
     val op: Operation = opFact.mutate(mutator, key, by, default.getOrElse(0L), expiry, new OperationCallback {
-      def receivedStatus(opStatus: OperationStatus) {
+      def receivedStatus(opStatus: OperationStatus): Unit = {
         handleStatus(opStatus, key, result) {
           case CASSuccessStatus =>
             result.tryComplete(Success(SuccessfulResult(key, opStatus.getMessage.toLong)))
         }
       }
 
-      def complete() {
+      def complete(): Unit = {
         result.completePromise(key, promise)
       }
     })
